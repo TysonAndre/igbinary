@@ -1,10 +1,12 @@
 --TEST--
 Correctly unserialize scalar refs.
 --SKIPIF--
+<?php
+if (PHP_MAJOR_VERSION < 7) { print "skip not implemented yet"; }
 --INI--
 igbinary.compact_strings = On
 --FILE--
-<?php 
+<?php
 $a = array("A");
 $a[1] = &$a[0];
 $a[2] = &$a[1];
