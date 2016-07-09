@@ -361,6 +361,28 @@ PHP_MINFO_FUNCTION(igbinary) {
 	DISPLAY_INI_ENTRIES();
 }
 /* }}} */
+
+/* {{{ igsd management */
+// Append to list of references to take out later
+static inline int igsd_append_ref(struct igbinary_unserialize_data *igsd, zval **z)
+{
+	size_t ref_n;
+	if (igsd->references_count + 1 >= igsd->references_capacity) {
+		while (igsd->references_count + 1 >= igsd->references_capacity) {
+			igsd->references_capacity *= 2;
+		}
+
+		igsd->references = (void **) erealloc(igsd->references, sizeof(void *) * igsd->references_capacity);
+		if (igsd->references == NULL)
+			return 1;
+	}
+
+	ref_n = igsd->references_count++;
+	igsd->references[ref_n] = (void*) *z;
+	return ref_n;
+}
+/* }}} */
+
 /* {{{ Memory allocator wrappers */
 static inline void *igbinary_mm_wrapper_malloc(size_t size, void *context)
 {
@@ -1919,17 +1941,7 @@ inline static int igbinary_unserialize_array(struct igbinary_unserialize_data *i
 		zend_hash_init(Z_ARRVAL_PP(z), n + 1, NULL, ZVAL_PTR_DTOR, 0);
 
 		/* references */
-		if (igsd->references_count + 1 >= igsd->references_capacity) {
-			while (igsd->references_count + 1 >= igsd->references_capacity) {
-				igsd->references_capacity *= 2;
-			}
-
-			igsd->references = (void **) erealloc(igsd->references, sizeof(void *) * igsd->references_capacity);
-			if (igsd->references == NULL)
-				return 1;
-		}
-
-		igsd->references[igsd->references_count++] = (void *) *z;
+		igsd_append_ref(igsd, z);
 	}
 
 	/* empty array */
@@ -2175,17 +2187,7 @@ inline static int igbinary_unserialize_object(struct igbinary_unserialize_data *
 	object_init_ex(*z, ce);
 
 	/* reference */
-	if (igsd->references_count + 1 >= igsd->references_capacity) {
-		while (igsd->references_count + 1 >= igsd->references_capacity) {
-			igsd->references_capacity *= 2;
-		}
-
-		igsd->references = (void **) erealloc(igsd->references, sizeof(void *) * igsd->references_capacity);
-		if (igsd->references == NULL)
-			return 1;
-	}
-
-	igsd->references[igsd->references_count++] = (void *) *z;
+	igsd_append_ref(igsd, z);
 
 	/* store incomplete class name */
 	if (incomplete_class) {
@@ -2309,17 +2311,7 @@ static int igbinary_unserialize_zval(struct igbinary_unserialize_data *igsd, zva
 				case IS_DOUBLE:
 				case IS_BOOL:
 					/* reference */
-					if (igsd->references_count + 1 >= igsd->references_capacity) {
-						while (igsd->references_count + 1 >= igsd->references_capacity) {
-							igsd->references_capacity *= 2;
-						}
-
-						igsd->references = (void **) erealloc(igsd->references, sizeof(void *) * igsd->references_capacity);
-						if (igsd->references == NULL)
-							return 1;
-					}
-
-					igsd->references[igsd->references_count++] = (void *) *z;
+					igsd_append_ref(igsd, z);
 			}
 			Z_SET_ISREF_TO_PP(z, true);
 			break;
