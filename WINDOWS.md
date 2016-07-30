@@ -13,9 +13,11 @@ If you don't have windows installed:
 1. Download a VM from https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/ (E.g. Windows 7 IE11)
    Prefer Windows 7. The trial period can be extended.
 2. Install the VM. Keep the disk image around, the VM trial period expires in 30 days.
-3. Run Windows Updates, which will take a long time.
-4. Read the instructions on the desktop background.
-5. (Windows 7)Search for "Command Prompt", right click on it and click "Run as administrator", and execute `slmgr /ato` to extend the trial period to 90 days.
+3. (Optional) Configure the VM to use more than once core (but not all available cores) to speed up installation/upgrading/compiling.
+4. Download https://support.microsoft.com/en-us/kb/3102810#bookmark-prerequisite (x86), disable internet, install that patch, re-enable internet)
+5. Run Windows Updates, which will take a long time.
+6. Read the instructions on the desktop background.
+7. (Windows 7)Search for "Command Prompt", right click on it and click "Run as administrator", and execute `slmgr /ato` to extend the trial period to 90 days.
 
 If the license expires/is about to expire , it is possible to "re-arm" (extend) the license several times with `slmgr`
 Installing Visual Studio
