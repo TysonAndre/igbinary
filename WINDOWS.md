@@ -23,10 +23,9 @@ If the license expires/is about to expire , it is possible to "re-arm" (extend) 
 Installing Visual Studio
 ------------------------
 
-1. Download the version of Visual Studio needed to build the newest version of PHP (mentioned on https://wiki.php.net/internals/windows/stepbystepbuild#building_pecl_extensions)
-   At the time of writing, that was [Visual Studio Community Edition 2015](https://www.visualstudio.com/products/visual-studio-community-vs)
-
-   VirtualBox
+1. Download the version of Visual Studio needed to build the desired version of PHP (mentioned on https://wiki.php.net/internals/windows/stepbystepbuild#building_pecl_extensions)
+   At the time of writing, that was [Visual Studio Community Edition 2015](https://www.visualstudio.com/products/visual-studio-community-vs) for PHP7.
+   Visual Studio 2015 **is not able to compile php 5**. Install Visual Studio 2012 if building php 5.5 or 5.6. Install Visual Studio 2008 if installing php 5.4.
 2. Install Visual Studio 2015. (Use custom installation, make sure that all C++ features are enabled)
 
 Downloading PHP
