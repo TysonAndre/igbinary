@@ -95,12 +95,12 @@ Similar to the above instructions.
    -    downloading a source archive
    -    fetching the source from the extension's repository (link can be found under *Browse Source*)
         https://github.com/igbinary/igbinary/
-3. Create a directory named pecl on the same level as your PHP source directory, e.g. C:\php-sdk\phpdev\vc11\x86\pecl
+3. If it doesn't already exist, then create a directory named pecl on the same level as your PHP source directory, e.g. C:\php-sdk\phpdev\vc11\x86\pecl
 4. Extract or clone the extension source code to the pecl directory
 
-   - if cloning, clone to a subdirectory, e.g. C:\php-sdk\phpdev\vc11\x86\pecl\apcu
-   - source code archive should already contain a subdirectory named e.g. apcu-4.0.7
-5. Open a command prompt, run the setvars script, and enter your PHP source directory
+   - if cloning, clone to a subdirectory, e.g. C:\php-sdk\phpdev\vc11\x86\pecl\igbinary
+   - source code archive should already contain a subdirectory named e.g. igbinary-1.3.0. That should be renamed to igbinary.
+5. Open a command prompt, run the setvars script, and enter your PHP source directory (not the extension directory)
 6. Rebuild the configure script by running:
 
    ```
@@ -111,15 +111,22 @@ Similar to the above instructions.
    (`config.m4` currently has no options. May allow disabling apcu support in the future, etc.)
 
    ```
-
+   --enable-apcu    Whether to enable APCu support
+   --enable-igbinary Whether to enable igbinary support
    ```
 
 8. Configure and build:
-   One may want to set CFLAGS to -O2 so it will be faster?
+   One may want to set CFLAGS (or equivalent) to -O2 so it will be faster?
+
+   If you want to test sessions and apcu as well, a minimal configure script would be:
 
    ```
-   configure
+   configure --disable-all --enable-cli --enable-cgi --enable-apcu --enable-igbinary
    ```
+
+   (If this is for a full installation, add `--enable-igbinary` to the config flags you were already using)
+
+   Then, build/rebuild php.
 
    ```
    nmake
@@ -129,5 +136,8 @@ Similar to the above instructions.
 10. Run the unit tests. Most should pass, some should be skipped (Or be expected failures(XFAIL)), none should fail.
 
     ```
-    nmake test
+	# In the php source directory, execute the following commands:
+    nmake test TESTS=C:\php-sdk\phpdev\path\to\igbinary\tests
+	# Optional test of related extensions:
+    # nmake test TESTS=C:\php-sdk\phpdev\path\to\apcu\tests
 	```
