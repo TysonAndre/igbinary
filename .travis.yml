@@ -21,12 +21,12 @@ env:
 
 install:
   - sudo apt-get update -qq
+  - sudo apt-get install -qq $CC
   # For 32-bit installations: Install multilib so it can be compiled, as well libc6-dbg:i386 so that valgrind will work.
-  - if [ "x$USE_32BIT" != "x" ]; then sudo apt-get install -y g++-multilib libc6-dev-i386 libc6-dbg:i386; export CC="$PWD/ci/gcc-32.sh"; export CXX="$PWD/ci/g++-32.sh"; $CC --version;  fi
+  - if [ "x$USE_32BIT" != "x" ]; then sudo apt-get install -y $CXX g++-multilib libc6-dev-i386 libc6-dbg:i386; export CC="$PWD/ci/gcc-32.sh"; export CXX="$PWD/ci/g++-32.sh"; $CC --version;  fi
   # If making a 32-bit build: Automatically determine and download the latest patch of each minor version we support.
   - if [ "x$PHP_CUSTOM" != "x" ]; then export PHP_CUSTOM_VERSION=$(./ci/get_global_php_version.sh); echo "Version is $PHP_CUSTOM_VERSION"; ./ci/install_php_custom.sh || exit 1; export PATH="$(./ci/generate_php_install_dir.sh)/bin:$PATH"; export PHPRC=$PWD/ci/; else ./ci/wipe_travis_cache.sh; fi
   - if [ "$VALGRIND" -eq 1 ]; then sudo apt-get install -qq valgrind; export TEST_PHP_ARGS="-m"; fi
-  - sudo apt-get install -qq $CC
   - if [ "$VALGRIND" -eq 1 ]; then valgrind --version; fi
   - $CC --version
 
