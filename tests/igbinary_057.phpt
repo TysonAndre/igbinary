@@ -2,9 +2,9 @@
 Test serializing more strings than the capacity of the initial strings table.
 --SKIPIF--
 --FILE--
-<?php 
+<?php
 function main() {
-	$array = [];
+	$array = array();
 	for ($i = 0; $i < 2; $i++) {
 		for ($c = 'a'; $c < 'z'; $c++) {
 			$array[] = $c;
