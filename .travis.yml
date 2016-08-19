@@ -17,7 +17,7 @@ env:
   - CC=gcc-4.6 CFLAGS=""
   - CC=gcc-4.6 CFLAGS="-g -O0 -fstack-protector -fstack-protector-all"
   - CC=gcc-4.6 CFLAGS="-g" VALGRIND=1
-  - CC=gcc-4.6 CXX=g++-4.6 USE_32BIT=1 VALGRIND=1 PHP_CUSTOM=maintainer-zts PHP_CONFIGURE_ARGS='--disable-all --enable-maintainer-zts --enable-debug --enable-cgi --enable-session'
+  - CC=gcc-4.6 CXX=g++-4.6 USE_32BIT=1 VALGRIND=1 PHP_CUSTOM=maintainer-zts PHP_CONFIGURE_ARGS='--disable-all --enable-maintainer-zts --enable-debug --enable-cgi --enable-session --enable-json'
 
 install:
   - sudo apt-get update -qq
