@@ -573,19 +573,19 @@ PS_SERIALIZER_ENCODE_FUNC(igbinary)
 
 	if (igbinary_serialize_data_init(&igsd, false, NULL TSRMLS_CC)) {
 		zend_error(E_WARNING, "igbinary_serialize: cannot init igsd");
-		return zend_string_init("", 0, 0);
+		return ZSTR_EMPTY_ALLOC();
 	}
 
 	if (igbinary_serialize_header(&igsd TSRMLS_CC) != 0) {
 		zend_error(E_WARNING, "igbinary_serialize: cannot write header");
 		igbinary_serialize_data_deinit(&igsd, 1 TSRMLS_CC);
-		return zend_string_init("", 0, 0);
+		return ZSTR_EMPTY_ALLOC();
 	}
 
 	if (igbinary_serialize_array(&igsd, &(PS(http_session_vars)), false, false TSRMLS_CC) != 0) {
 		igbinary_serialize_data_deinit(&igsd, 1 TSRMLS_CC);
 		zend_error(E_WARNING, "igbinary_serialize: cannot serialize session variables");
-		return zend_string_init("", 0, 0);
+		return ZSTR_EMPTY_ALLOC();
 	}
 
 	/* Copy the buffer to a new zend_string */
