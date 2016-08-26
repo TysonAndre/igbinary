@@ -1,3 +1,4 @@
+#include "php_version.h"
 #if PHP_MAJOR_VERSION == 5
 #include "src/php5/igbinary.h"
 #elif PHP_MAJOR_VERSION == 7
