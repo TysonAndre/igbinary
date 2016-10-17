@@ -3,23 +3,24 @@ Compiling igbinary from source on Windows
 
 This guide is added for packagers or developers of the igbinary project.
 
-Installing through pecl is probably easier for users of igbinary?
+Installing through PECL (Not available yet) is probably easier for users of igbinary?
 
 Setting up a Windows VM
 -----------------------
 
-If you don't have windows installed:
+If you don't have Windows installed:
 
 1. Download a VM from https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/ (E.g. Windows 7 IE11)
    Prefer Windows 7. The trial period can be extended.
 2. Install the VM. Keep the disk image around, the VM trial period expires in 30 days.
-3. (Optional) Configure the VM to use more than once core (but not all available cores) to speed up installation/upgrading/compiling.
+3. (Optional) Configure the VM to use more than one core (but not all available cores) to speed up installation/upgrading/compiling.
 4. Download https://support.microsoft.com/en-us/kb/3102810#bookmark-prerequisite (x86), disable internet, install that patch, re-enable internet)
 5. Run Windows Updates, which will take a long time.
-6. Read the instructions on the desktop background.
+6. Read the instructions on the desktop background (for extending trial period).
 7. (Windows 7)Search for "Command Prompt", right click on it and click "Run as administrator", and execute `slmgr /ato` to extend the trial period to 90 days.
 
-If the license expires/is about to expire , it is possible to "re-arm" (extend) the license several times with `slmgr`
+If the license expires/is about to expire, it is possible to "re-arm" (extend) the license several times with `slmgr`
+
 Installing Visual Studio
 ------------------------
 
@@ -43,45 +44,45 @@ Building igbinary
 
 See https://wiki.php.net/internals/windows/stepbystepbuild#building\_pecl\_extensions
 
-### Install APCU (optional?)
+### Install APCU (optional)
 
 Note: The Windows build hasn't worked for a while in 5.6, so there may be compilation errors or test failures.
 
 TODO: Make sure that `config.w32` works without APCU installed.
 
-> 1. Open the extension's page on PECL ( APCu)
+> 1. Open the extension's page on PECL ([APCu](https://pecl.php.net/package/APCu))
 > 2. Download the extension source either by:
-> 
+>
 >    -    downloading a source archive
 >    -    fetching the source from the extension's repository (link can be found under *Browse Source*)
 > 3. Create a directory named pecl on the same level as your PHP source directory, e.g. C:\php-sdk\phpdev\vc11\x86\pecl
 > 4. Extract or clone the extension source code to the pecl directory
-> 
+>
 >    - if cloning, clone to a subdirectory, e.g. C:\php-sdk\phpdev\vc11\x86\pecl\apcu
 >    - source code archive should already contain a subdirectory named e.g. apcu-4.0.7
-> 5. Open a command prompt, run the setvars script, and enter your PHP source directory
+> 5. Open a command prompt, run the `setvars` script, and enter your PHP source directory
 > 6. Rebuild the configure script by running:
-> 
+>
 >    ```
 >    buildconf
 >    ```
-> 
+>
 > 7. Executing `configure --help` should now contain an option to enable APCu
-> 
+>
 >    ```
 >    --enable-apcu    Whether to enable APCu support
 >    ```
-> 
+>
 > 8. Configure and build:
-> 
+>
 >    ```
 >    configure --disable-all --enable-cli --enable-apcu
 >    ```
-> 
+>
 >    ```
 >    nmake
 >    ```
-> 
+>
 > 9. Test the binary with a php -m command, to make sure APCu is loaded
 
 ### Install igbinary
@@ -118,13 +119,13 @@ Similar to the above instructions.
 8. Configure and build:
    One may want to set CFLAGS (or equivalent) to -O2 so it will be faster?
 
-   If you want to test sessions and apcu as well, a minimal configure script would be:
+   If you want to test sessions and apcu as well, an extremely minimal configure script would be:
 
    ```
-   configure --disable-all --enable-cli --enable-cgi --enable-apcu --enable-igbinary
+   configure --disable-all --enable-cli --enable-cgi --enable-apcu --enable-igbinary --enable-json
    ```
 
-   (If this is for a full installation, add `--enable-igbinary` to the config flags you were already using)
+   (If testing a full installation, add `--enable-igbinary` to the config flags you were already using)
 
    Then, build/rebuild php.
 
@@ -132,12 +133,15 @@ Similar to the above instructions.
    nmake
    ```
 
-9. Test the binary with a php -m command, to make sure APCu is loaded
+9. Test the binary with a php -m command, to make sure igbinary is loaded. (and any other extensions such as APCu)
 10. Run the unit tests. Most should pass, some should be skipped (Or be expected failures(XFAIL)), none should fail.
 
     ```
-	# In the php source directory, execute the following commands:
+    # In the php source directory, execute the following commands:
     nmake test TESTS=C:\php-sdk\phpdev\path\to\igbinary\tests
-	# Optional test of related extensions:
+    # Optional test of related extensions:
     # nmake test TESTS=C:\php-sdk\phpdev\path\to\apcu\tests
-	```
+    ```
+
+    In recent releases of php7, this can be probably done by running `nmake test`
+	within the igbinary folder immediately after configuration for the desired php7 version.

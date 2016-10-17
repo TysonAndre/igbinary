@@ -1,2 +1,2 @@
 #!/bin/sh
-php -r "echo(str_replace('-dev','',PHP_VERSION));"
+php -r "echo(preg_replace('/-dev|RC[0-9]+$/','',PHP_VERSION));"

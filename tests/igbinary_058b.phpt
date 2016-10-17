@@ -58,4 +58,4 @@ Calling __wakeup b
 Calling __wakeup c
 Calling __destruct a dynamic=copy
 Calling __destruct b dynamic=copy
-Caught __wakeup threw for id b
+Caught __wakeup threw for id c

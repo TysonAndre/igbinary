@@ -19,7 +19,7 @@ fi
 # Otherwise, put a minimal installation inside of the cache.
 PHP_TAR_FILE="$PHP_FOLDER.tar.bz2"
 curl --verbose https://secure.php.net/distributions/$PHP_TAR_FILE -o $PHP_TAR_FILE
-# If we decide to support 7.1.0, it would be `curl --verbose https://downloads.php.net/~ab/php-7.1.0beta1.tar.bz2 -o $PHP_TAR_FILE`
+# If we decide to support 7.1.0, it would be `curl --verbose https://downloads.php.net/~davey/php-7.1.0RC3.tar.bz2 -o $PHP_TAR_FILE`
 tar xjf $PHP_TAR_FILE
 
 pushd $PHP_FOLDER
