@@ -1,11 +1,12 @@
 # Based on php-ds's appveyor config.
 # This tests against the latest stable minor version of PHP 7 (Currently 7.0)
+# The project name is the same as the build id used, e.g. https://www.appveyor.com/docs/environment-variables/
 
 version: '{branch}.{build}'
 install:
 - cmd: choco feature enable -n=allowGlobalConfirmation
 - cmd: cinst wget
-- cmd: mkdir C:\projects\igbinary\bin
+- cmd: mkdir %APPVEYOR_BUILD_FOLDER%\bin
 build_script:
 - cmd: >-
     "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvars32.bat"
@@ -20,7 +21,7 @@ build_script:
 
     mkdir C:\projects\php-src\ext\igbinary
 
-    xcopy C:\projects\igbinary C:\projects\php-src\ext\igbinary /s /e /y
+    xcopy %APPVEYOR_BUILD_FOLDER% C:\projects\php-src\ext\igbinary /s /e /y
 
     wget http://windows.php.net/downloads/php-sdk/deps-7.0-vc14-x86.7z
 
@@ -30,7 +31,7 @@ build_script:
 
     buildconf.bat
 
-    configure.bat --disable-all --enable-session --enable-cli --enable-cgi --enable-igbinary --enable-json --with-config-file-scan-dir=C:\projects\extension\bin\modules.d --with-prefix=C:\projects\igbinary\bin --with-php-build=deps
+    configure.bat --disable-all --enable-session --enable-cli --enable-cgi --enable-igbinary --enable-json --with-config-file-scan-dir=C:\projects\extension\bin\modules.d --with-prefix=%APPVEYOR_BUILD_FOLDER%\bin --with-php-build=deps
 
     nmake
 
@@ -53,7 +54,7 @@ test_script:
 #> Command exited with code 2
 #> nmake install
 
-# mkdir C:\projects\igbinary\bin\modules.d
+# mkdir %APPVEYOR_BUILD_FOLDER%\bin\modules.d
 
-# echo extension=igbinary.dll > C:\projects\igbinary\bin\modules.d\php.ini
+# echo extension=igbinary.dll > %APPVEYOR_BUILD_FOLDER%\bin\modules.d\php.ini
 
