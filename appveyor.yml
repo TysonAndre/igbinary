@@ -1,0 +1,45 @@
+# Based on php-ds's appveyor config.
+
+version: '{branch}.{build}'
+install:
+- cmd: mkdir C:\projects\extension\bin
+build_script:
+- cmd: >-
+    "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\vcvars32.bat"
+
+    wget http://windows.php.net/downloads/php-sdk/php-sdk-binary-tools-20110915.zip
+
+    7z x -y php-sdk-binary-tools-20110915.zip -oC:\projects\php-sdk
+
+    C:\projects\php-sdk\bin\phpsdk_setvars.bat
+
+    git clone https://github.com/php/php-src C:\projects\php-src
+
+    mkdir C:\projects\php-src\ext\igbinary
+
+    xcopy C:\projects\extension C:\projects\php-src\ext\igbinary /s /e /y
+
+    wget http://windows.php.net/downloads/php-sdk/deps-7.0-vc14-x86.7z
+
+    7z x -y deps-7.0-vc14-x86.7z -oC:\projects\php-src
+
+    cd C:\projects\php-src
+
+    buildconf.bat
+
+    configure.bat --disable-all --enable-phar --enable-json --enable-hash --enable-ctype --enable-filter --enable-tokenizer --enable-zip --with-iconv --with-openssl --with-dom --with-libxml --enable-cli --enable-debug --enable-zts --enable-igbinary --with-config-file-scan-dir=C:\projects\extension\bin\modules.d --with-prefix=C:\projects\extension\bin --with-php-build=deps
+
+    nmake
+
+    nmake install
+
+    mkdir C:\projects\extension\bin\modules.d
+
+    echo extension=igbinary.dll > C:\projects\extension\bin\modules.d\php.ini
+test_script:
+- cmd: cd C:\projects\php-src
+- cmd: nmake test TESTS=C:\projects\php-src\ext\igbinary\tests
+artifacts:
+  - path: bin
+    name: master
+    type: zip
