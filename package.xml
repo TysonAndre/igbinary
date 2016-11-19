@@ -35,7 +35,7 @@
   <release>stable</release>
   <api>stable</api>
  </stability>
- <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">New BSD</license>
+ <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
  <notes>
 - Compatible with PHP 5.2 - 7.0
  </notes>
@@ -168,7 +168,7 @@
     <release>stable</release>
     <api>stable</api>
    </stability>
-   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">New BSD</license>
+   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
    <notes>
 - Compatible with PHP 5.2 - 7.0 (Adds PHP 7 support)
 - Serialization format is unchanged
@@ -190,7 +190,7 @@
     <release>stable</release>
     <api>stable</api>
    </stability>
-   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">New BSD</license>
+   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause-3-Clause</license>
    <notes>
 - Compatible with PHP 5.2 - 5.6
    </notes>
@@ -206,7 +206,7 @@
     <release>stable</release>
     <api>stable</api>
    </stability>
-   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">New BSD</license>
+   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
    <notes>
 - PECL bug #22614, igbinary_unserialize(FALSE) must return FALSE
 - PHP bug #54662, unserializing nested objects cause crash
@@ -224,7 +224,7 @@
     <release>stable</release>
     <api>stable</api>
    </stability>
-   <license uri="http://opensource.dynamoid.com/#license">New BSD</license>
+   <license uri="http://opensource.dynamoid.com/#license">BSD-3-Clause</license>
    <notes>
 - Initial PECL release
    </notes>
