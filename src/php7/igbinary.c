@@ -592,6 +592,7 @@ PS_SERIALIZER_ENCODE_FUNC(igbinary)
 }
 /* }}} */
 /* {{{ Serializer decode function */
+/* This is similar to PS_SERIALIZER_DECODE_FUNC(php) from ext/session/session.c */
 PS_SERIALIZER_DECODE_FUNC(igbinary) {
 	HashTable *tmp_hash;
 	int tmp_int;
@@ -622,6 +623,11 @@ PS_SERIALIZER_DECODE_FUNC(igbinary) {
 		return FAILURE;
 	}
 
+	if (igbinary_finish_wakeup(&igsd TSRMLS_CC)) {
+		igbinary_unserialize_data_deinit(&igsd TSRMLS_CC);
+		return FAILURE;
+	}
+
 	igbinary_unserialize_data_deinit(&igsd TSRMLS_CC);
 
 	tmp_hash = HASH_OF(&z);
@@ -638,9 +644,7 @@ PS_SERIALIZER_DECODE_FUNC(igbinary) {
 		if (php_set_session_var(key, d, NULL TSRMLS_CC)) { /* Added to session successfully */
 			/* Refcounted types such as arrays, objects, references need to have references incremented manually, so that zval_ptr_dtor doesn't clean up pointers they include. */
 			/* Non-refcounted types have the data copied. */
-			if (Z_REFCOUNTED_P(d)) {
-				Z_ADDREF_P(d);
-			}
+			Z_TRY_ADDREF_P(d);
 		}
 	} ZEND_HASH_FOREACH_END();
 

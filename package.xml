@@ -44,6 +44,8 @@
  <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
  <notes>
 - Compatible with PHP 5.2 - 7.0
+- Fixes bug in session decoder not calling wakeup in php 7.0+
+- (Enhancement) Reuses identical strings when unserializing objects and arrays in php 7.0+
  </notes>
  <contents>
   <dir name="/">
@@ -144,6 +146,7 @@
     <file name="igbinary_058b.phpt" role="test" />
     <file name="igbinary_059.phpt" role="test" />
     <file name="igbinary_060.phpt" role="test" />
+    <file name="igbinary_061.phpt" role="test" />
     <file name="igbinary_bug54662.phpt" role="test" />
     <file name="igbinary_bug72134.phpt" role="test" />
     <file name="igbinary_unserialize_v1_compatible.phpt" role="test" />
@@ -176,6 +179,9 @@
    </stability>
    <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
    <notes>
+- Compatible with PHP 5.2 - 7.0
+- Fixes bug in session decoder not calling wakeup in php 7.0+
+- (Enhancement) Reuses identical strings when unserializing objects and arrays in php 7.0+
    </notes>
   </release>
   <release>
