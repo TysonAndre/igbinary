@@ -31,14 +31,14 @@
   <email>tysonandre775@hotmail.com</email>
   <active>yes</active>
  </developer>
- <date>2016-10-30</date>
+ <date>2016-11-19</date>
  <time>16:00:00</time>
  <version>
-  <release>2.0.0</release>
+  <release>2.0.1dev</release>
   <api>1.1.1</api>
  </version>
  <stability>
-  <release>stable</release>
+  <release>devel</release>
   <api>stable</api>
  </stability>
  <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
@@ -163,6 +163,21 @@
  <providesextension>igbinary</providesextension>
  <extsrcrelease />
  <changelog>
+  <release>
+   <date>2016-11-19</date>
+   <time>16:00:00</time>
+   <version>
+    <release>2.0.1dev</release>
+    <api>1.1.1</api>
+   </version>
+   <stability>
+    <release>devel</release>
+    <api>stable</api>
+   </stability>
+   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
+   <notes>
+   </notes>
+  </release>
   <release>
    <date>2016-10-30</date>
    <time>16:00:00</time>
