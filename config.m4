@@ -47,7 +47,7 @@ if test "$PHP_IGBINARY" != "no"; then
     apc_inc_path="$phpincludedir"
     AC_MSG_RESULT([APC in $apc_inc_path])
     AC_DEFINE(HAVE_APC_SUPPORT,1,[Whether to enable apc support])
-  elif test -f "${srcdir}/$subdir/apc_serializer.h"; then
+  elif test "$subdir" == src/php5 && test -f "${srcdir}/$subdir/apc_serializer.h"; then
     AC_MSG_RESULT([apc_serializer.h bundled])
     AC_DEFINE(HAVE_APC_SUPPORT,1,[Whether to enable apc support])
     AC_DEFINE(USE_BUNDLED_APC,1,[Whether to use bundled apc includes])
