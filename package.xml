@@ -34,17 +34,17 @@
  <date>2016-11-19</date>
  <time>16:00:00</time>
  <version>
-  <release>2.0.1dev</release>
+  <release>2.0.1</release>
   <api>1.1.1</api>
  </version>
  <stability>
-  <release>devel</release>
+  <release>stable</release>
   <api>stable</api>
  </stability>
  <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
  <notes>
 - Compatible with PHP 5.2 - 7.0
-- Fixes bug in session decoder not calling wakeup in php 7.0+
+- Fixes bug in session decoder not calling __wakeup() in php 7.0+
 - (Enhancement) Reuses identical strings when unserializing objects and arrays in php 7.0+
  </notes>
  <contents>
@@ -170,11 +170,11 @@
    <date>2016-11-19</date>
    <time>16:00:00</time>
    <version>
-    <release>2.0.1dev</release>
+    <release>2.0.1</release>
     <api>1.1.1</api>
    </version>
    <stability>
-    <release>devel</release>
+    <release>stable</release>
     <api>stable</api>
    </stability>
    <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
