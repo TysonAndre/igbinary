@@ -115,6 +115,31 @@ enum igbinary_type {
 	/* 24 */ igbinary_type_objref32,		/**< Object reference. */
 
 	/* 25 */ igbinary_type_ref,				/**< Simple reference */
+
+	/* 26 */ igbinary_type_array_empty      /**< Empty array */
+	/* 27 */ igbinary_type_string_stdclass  /**< "stdClass" */
+
+	/* 28 */ igbinary_type_string_private_id8,       /**< Private property of top class. */
+	/* 29 */ igbinary_type_string_private_b64_id8,   /**< Private property of top class, base64 decoded. */
+	/* 2a */ igbinary_type_string_protected_id8,     /**< Protected property. */
+	/* 2b */ igbinary_type_string_protected_b64_id8, /**< Protected property, base 64 decoded. */
+
+	/* 2c */ igbinary_type_string_base64_id8,        /**< string (or public property), base 64 decoded. */
+	/* 2d */ igbinary_type_string_base64_id16,       /**< string (or public property), base 64 decoded. */
+
+	/* 2e */ igbinary_type_string_long8p,	/**< Stringified long 8bit positive. */
+	/* 2f */ igbinary_type_string_long8n,	/**< Stringified long 8bit negative. */
+	/* 30 */ igbinary_type_string_long16p,	/**< Stringified long 16bit positive. */
+	/* 31 */ igbinary_type_string_long16n,	/**< Stringified long 16bit negative. */
+	/* 32 */ igbinary_type_string_long32p,	/**< Stringified long 32bit positive. */
+	/* 33 */ igbinary_type_string_long32n,	/**< Stringified long 32bit negative. */
+	/* 34 */ igbinary_type_string_long64p,	/**< Stringified long 64bit positive. */
+	/* 35 */ igbinary_type_string_long64n,	/**< Stringified long 64bit negative. */
+
+	/* 36 */ igbinary_type_array_packed8,	/**< Packed Array (increasing non-negative int keys). */
+	/* 37 */ igbinary_type_array_packed16,	/**< Packed Array. */
+	/* 38 */ igbinary_type_array_packed32,	/**< Packed Array. */
+	/* 39 */ igbinary_type_undef,			/**< undefined(Gap in packed array). */
 };
 
 /** Serializer data.
@@ -1208,6 +1233,78 @@ inline static int igbinary_serialize_array_ref(struct igbinary_serialize_data *i
 	return 1;
 }
 /* }}} */
+/* {{{ igbinary_serialize_private_string */
+inline static int igbinary_serialize_private_string(struct igbinary_serialize_data *igsd, zend_string *prop_name, zend_string *mangled_prop_name, zend_string *ce_name TSRMLS_DC) {
+	// TODO: Finish implementing this.
+	return igbinary_serialize_string(igsd, ZSTR_VAL(mangled_prop_name), ZSTR_LEN(mangled_prop_name) TSRMLS_CC)
+}
+/* }}} */
+/* {{{ igbinary_serialize_protected_string */
+inline static int igbinary_serialize_protected_string(struct igbinary_serialize_data *igsd, zend_string *prop_name, zend_string *mangled_prop_name, zend_string *ce_name TSRMLS_DC) {
+	// TODO: Finish implementing this.
+	return igbinary_serialize_string(igsd, ZSTR_VAL(mangled_prop_name), ZSTR_LEN(mangled_prop_name) TSRMLS_CC)
+}
+/* }}} */
+/* {{{ igbinary_serialize_mangled_property_key_value */
+/** Serializes a private/protected object property key and value (public property was already checked for) */
+inline static int igbinary_serialize_mangled_property_key_value(struct igbinary_serialize_data *igsd, zend_string *prop_name, zval *v, HashTable *object_properties, zend_class_entry *ce TSRMLS_DC) {
+	zend_string *mangled_prop_name;
+
+	v = NULL;
+	/* try private */
+	mangled_prop_name = zend_mangle_property_name(ZSTR_VAL(ce->name), ZSTR_LEN(ce->name),
+		ZSTR_VAL(prop_name), ZSTR_LEN(prop_name), ce->type & ZEND_INTERNAL_CLASS);
+	v = zend_hash_find(object_properties, mangled_prop_name);
+	if (v != NULL) {
+		int result = igbinary_serialize_private_string(igsd, prop_name, mangled_prop_name TSRMLS_CC);
+		zend_string_release(mangled_prop_name);
+		if (result != 0) {
+			return 1;
+		}
+
+		if (Z_TYPE_P(v) == IS_INDIRECT) {
+			v = Z_INDIRECT_P(v);
+		}
+		if (igbinary_serialize_zval(igsd, v TSRMLS_CC) != 0) {
+			return 1;
+		}
+	}
+	zend_string_release(mangled_prop_name);
+
+	/* try protected */
+	mangled_prop_name = zend_mangle_property_name("*", 1,
+		ZSTR_VAL(prop_name), ZSTR_LEN(prop_name), ce->type & ZEND_INTERNAL_CLASS);
+
+	v = zend_hash_find(object_properties, mangled_prop_name);
+	if (v != NULL) {
+		int result = igbinary_serialize_protected_string(igsd, prop_name, mangled_prop_name TSRMLS_DC);
+		zend_string_release(mangled_prop_name);
+		if (result != 0) {
+			return 1;
+		}
+
+		if (Z_TYPE_P(v) == IS_INDIRECT) {
+			v = Z_INDIRECT_P(v);
+		}
+		if (igbinary_serialize_zval(igsd, v TSRMLS_CC) != 0) {
+			return 1;
+		}
+	}
+	zend_string_release(mangled_prop_name);
+
+	/* Neither property exists */
+	php_error_docref(NULL TSRMLS_CC, E_NOTICE, "\"%s\" returned as member variable from __sleep() but does not exist", Z_STRVAL_P(d));
+	if (igbinary_serialize_string(igsd, Z_STRVAL_P(d), Z_STRLEN_P(d) TSRMLS_CC) != 0) {
+		return 1;
+	}
+
+	if (igbinary_serialize_null(igsd TSRMLS_CC) != 0) {
+		return 1;
+	}
+
+	return 0;
+}
+/* }}} */
 /* {{{ igbinary_serialize_array_sleep */
 /** Serializes object's properties array with __sleep -function. */
 inline static int igbinary_serialize_array_sleep(struct igbinary_serialize_data *igsd, zval *z, HashTable *h, zend_class_entry *ce, bool incomplete_class TSRMLS_DC) {
@@ -1288,56 +1385,9 @@ inline static int igbinary_serialize_array_sleep(struct igbinary_serialize_data 
 					return 1;
 				}
 			} else if (ce) {
-				zend_string *mangled_prop_name;
-
-				v = NULL;
-
-				do {
-					/* try private */
-					mangled_prop_name = zend_mangle_property_name(ZSTR_VAL(ce->name), ZSTR_LEN(ce->name),
-						ZSTR_VAL(prop_name), ZSTR_LEN(prop_name), ce->type & ZEND_INTERNAL_CLASS);
-					v = zend_hash_find(object_properties, mangled_prop_name);
-
-					/* try protected */
-					if (v == NULL) {
-						zend_string_release(mangled_prop_name);
-						mangled_prop_name = zend_mangle_property_name("*", 1,
-							ZSTR_VAL(prop_name), ZSTR_LEN(prop_name), ce->type & ZEND_INTERNAL_CLASS);
-
-						v = zend_hash_find(object_properties, mangled_prop_name);
-					}
-
-					/* Neither property exist */
-					if (v == NULL) {
-						zend_string_release(mangled_prop_name);
-
-						php_error_docref(NULL TSRMLS_CC, E_NOTICE, "\"%s\" returned as member variable from __sleep() but does not exist", Z_STRVAL_P(d));
-						if (igbinary_serialize_string(igsd, Z_STRVAL_P(d), Z_STRLEN_P(d) TSRMLS_CC) != 0) {
-							return 1;
-						}
-
-						if (igbinary_serialize_null(igsd TSRMLS_CC) != 0) {
-							return 1;
-						}
-
-						break;
-					}
-
-					if (Z_TYPE_P(v) == IS_INDIRECT) {
-						v = Z_INDIRECT_P(v);
-					}
-
-					if (igbinary_serialize_string(igsd, ZSTR_VAL(mangled_prop_name), ZSTR_LEN(mangled_prop_name) TSRMLS_CC) != 0) {
-						zend_string_release(mangled_prop_name);
-						return 1;
-					}
-
-					zend_string_release(mangled_prop_name);
-					if (igbinary_serialize_zval(igsd, v TSRMLS_CC) != 0) {
-						return 1;
-					}
-				} while (0);
-
+				if (igbinary_serialize_mangled_property_key_value(igsd, ce, prop_name TSRMLS_CC) != 0) {
+					return 1;
+				}
 			} else {
 				/* if all else fails, just serialize the value in anyway. */
 				if (igbinary_serialize_string(igsd, Z_STRVAL_P(d), Z_STRLEN_P(d) TSRMLS_CC) != 0) {
