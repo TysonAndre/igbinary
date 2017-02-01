@@ -61,6 +61,45 @@ static int APC_SERIALIZER_NAME(igbinary) (APC_SERIALIZER_ARGS);
 static int APC_UNSERIALIZER_NAME(igbinary) (APC_UNSERIALIZER_ARGS);
 #endif
 
+/* Coincidentally, the same as as modified Base64 for URL encoding. */
+static const uint8_t b64_decode[] = {
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,  63, 255, 255,
+	 52,  53,  54,  55,  56,  57,  58,  59,  60,  61, 255, 255, 255, 255, 255, 255,
+	255,   0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,
+	 15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25, 255, 255, 255, 255,  62,
+	255,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,  39,  40,
+	 41,  42,  43,  44,  45,  46,  47,  48,  49,  50,  51, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+};
+static const uint8_t int_decode[] = {
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	  0,   1,   2,   3,   4,   5,   6,   7,   8,   9, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+};
+static const char b64_encode[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+
 /* {{{ Types */
 enum igbinary_type {
 	/* 00 */ igbinary_type_null,			/**< Null. */
@@ -1007,10 +1046,48 @@ inline static int igbinary_serialize_string(struct igbinary_serialize_data *igsd
 	return 0;
 }
 /* }}} */
+/* {{{ igbinary_is_b64_data }}} */
+#define DATA_REGULAR 0
+#define DATA_INTEGER 1
+#define DATA_B64 2
+/** Checks if a string(byte sequence) can be treated as an integer or base 64 encoded data to further shorten it. */
+inline static int igbinary_is_b64_data(const unsigned char *s, const size_t len) {
+	const unsigned char *it;
+	const unsigned char *end;
+	if (len <= 1) {
+		return DATA_REGULAR;  // no benefit
+	}
+	if (*it == '-') {
+		it++;
+	}
+	it = s;
+	end = s + len;
+	for (; it != end; it++) {
+		if (int64_decode[*it] != 255) {
+			if (len <= 3) {
+				return DATA_REGULAR;
+			}
+			for (; i < len; i++) {
+				if (b64_decode[*it] != 255) {
+					return DATA_REGULAR;
+				}
+			}
+			return DATA_B64;  // TODO: check maximum length.
+		}
+	}
+	return DATA_INTEGER;
+}
+/* }}} */
 /* {{{ igbinary_serialize_chararray */
 /** Serializes string data. */
 inline static int igbinary_serialize_chararray(struct igbinary_serialize_data *igsd, const char *s, size_t len TSRMLS_DC) {
 	if (len <= 0xff) {
+		int type = igbinary_is_b64_data(s, len);
+		if (type == DATA_INTEGER) {
+			// TODO: serialize.
+		} else if (type == DATA_B64) {
+			// TODO: serialize
+		}
 		if (igbinary_serialize8(igsd, igbinary_type_string8 TSRMLS_CC) != 0) {
 			return 1;
 		}
