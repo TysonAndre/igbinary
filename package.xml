@@ -27,14 +27,14 @@
  </lead>
  <developer>
   <name>Tyson Andre</name>
-  <user></user>
+  <user>tandre</user>
   <email>tysonandre775@hotmail.com</email>
   <active>yes</active>
  </developer>
- <date>2016-11-19</date>
+ <date>2017-03-31</date>
  <time>16:00:00</time>
  <version>
-  <release>2.0.1</release>
+  <release>2.0.4</release>
   <api>1.1.1</api>
  </version>
  <stability>
@@ -43,9 +43,7 @@
  </stability>
  <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
  <notes>
-- Compatible with PHP 5.2 - 7.0
-- Fixes bug in session decoder not calling __wakeup() in php 7.0+
-- (Enhancement) Reuses identical strings when unserializing objects and arrays in php 7.0+
+* Fixes bug #129: Should not call __wakeup() on data which was created by Serializable::unserialize()
  </notes>
  <contents>
   <dir name="/">
@@ -75,10 +73,8 @@
    <file name="igbinary.php.ini" role="doc" />
    <file name="tags.sh" role="doc" />
    <file name="igbinary.spec" role="doc" />
-   <file name="ChangeLog" role="doc" />
    <file name="COPYING" role="doc" />
    <file name="CREDITS" role="doc" />
-   <file name="EXPERIMENTAL" role="doc" />
    <file name="README.md" role="doc" />
    <file name="NEWS" role="doc" />
    <dir name="tests">
@@ -147,6 +143,7 @@
     <file name="igbinary_059.phpt" role="test" />
     <file name="igbinary_060.phpt" role="test" />
     <file name="igbinary_061.phpt" role="test" />
+    <file name="igbinary_062.phpt" role="test" />
     <file name="igbinary_bug54662.phpt" role="test" />
     <file name="igbinary_bug72134.phpt" role="test" />
     <file name="igbinary_unserialize_v1_compatible.phpt" role="test" />
@@ -166,6 +163,46 @@
  <providesextension>igbinary</providesextension>
  <extsrcrelease />
  <changelog>
+  <release>
+   <date>2017-04-14</date>
+   <time>16:00:00</time>
+   <version>
+    <release>2.0.4</release>
+    <api>1.1.1</api>
+   </version>
+   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
+   <notes>
+* Fixes bug #129: Should not call __wakeup() on data which was created by Serializable::unserialize()
+   </notes>
+  </release>
+  <release>
+   <date>2017-03-31</date>
+   <time>16:00:00</time>
+   <version>
+    <release>2.0.3</release>
+    <api>1.1.1</api>
+   </version>
+   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
+   <notes>
+- Fixes bug #126: Fatal error: "igbinary_serialize_zval: zval has unknown type 0" (IS_UNDEF)
+  Make this a warning instead of a fatal error (and serialize as null instead), since IS_UNDEF is a known type.
+  Later releases will fix the root cause of the warning, and consistently omit array/object/other entries for IS_UNDEF.
+   </notes>
+  </release>
+  <release>
+   <date>2017-02-28</date>
+   <time>16:00:00</time>
+   <version>
+    <release>2.0.2</release>
+    <api>1.1.1</api>
+   </version>
+   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
+   <notes>
+- Compatible with PHP 5.2 - 7.1
+- Fixes crash in Memcached->setMulti (in php 7.0+) when the first level of array elements have references as values.
+  Other extensions using igbinary shouldn't be affected.
+   </notes>
+  </release>
   <release>
    <date>2016-11-19</date>
    <time>16:00:00</time>

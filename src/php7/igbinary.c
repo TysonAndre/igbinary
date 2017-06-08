@@ -452,6 +452,12 @@ IGBINARY_API int igbinary_serialize(uint8_t **ret, size_t *ret_len, zval *z TSRM
 IGBINARY_API int igbinary_serialize_ex(uint8_t **ret, size_t *ret_len, zval *z, struct igbinary_memory_manager *memory_manager TSRMLS_DC) {
 	struct igbinary_serialize_data igsd;
 	uint8_t *tmpbuf;
+	// While we can't get passed references through the PHP_FUNCTIONs igbinary declares, third party code can call us igbinary's methods with references.
+	// See https://github.com/php-memcached-dev/php-memcached/issues/326
+	if (Z_TYPE_P(z) == IS_INDIRECT) {
+		z = Z_INDIRECT_P(z);
+	}
+	ZVAL_DEREF(z);
 
 	if (igbinary_serialize_data_init(&igsd, Z_TYPE_P(z) != IS_OBJECT && Z_TYPE_P(z) != IS_ARRAY, memory_manager TSRMLS_CC)) {
 		zend_error(E_WARNING, "igbinary_serialize: cannot init igsd");
@@ -831,7 +837,7 @@ inline static int igbinary_serialize_bool(struct igbinary_serialize_data *igsd, 
 /** Serializes zend_long. */
 inline static int igbinary_serialize_long(struct igbinary_serialize_data *igsd, zend_long l TSRMLS_DC) {
 	zend_long k = l >= 0 ? l : -l;
-	bool p = l >= 0 ? true : false;
+	bool p = l >= 0;
 
 	/* -ZEND_LONG_MIN is 0 otherwise. */
 	if (l == ZEND_LONG_MIN) {
@@ -1626,6 +1632,10 @@ static int igbinary_serialize_zval(struct igbinary_serialize_data *igsd, zval *z
 			return igbinary_serialize_long(igsd, Z_LVAL_P(z) TSRMLS_CC);
 		case IS_NULL:
 			return igbinary_serialize_null(igsd TSRMLS_CC);
+		case IS_UNDEF:
+			// As of php 7.1.3, started seeing "zval has unknown type 0"
+			zend_error(E_WARNING, "igbinary_serialize_zval: zval has unexpected type IS_UNDEF(0)");
+			return igbinary_serialize_null(igsd TSRMLS_CC);
 		case IS_TRUE:
 			return igbinary_serialize_bool(igsd, 1 TSRMLS_CC);
 		case IS_FALSE:
@@ -2256,6 +2266,7 @@ inline static int igbinary_unserialize_object(struct igbinary_unserialize_data *
 	int r;
 
 	bool incomplete_class = false;
+	bool is_from_serialized_data = false;
 
 	zval user_func;
 	zval retval;
@@ -2356,6 +2367,7 @@ inline static int igbinary_unserialize_object(struct igbinary_unserialize_data *
 		case igbinary_type_object_ser16:
 		case igbinary_type_object_ser32:
 
+			is_from_serialized_data = true;
 			r = igbinary_unserialize_object_ser(igsd, t, IGB_REF_VAL(igsd, ref_n), ce TSRMLS_CC);
             if (r != 0) {
                 break;
@@ -2375,7 +2387,8 @@ inline static int igbinary_unserialize_object(struct igbinary_unserialize_data *
 	class_name = NULL;
 
 	/* If unserialize was successful, call __wakeup if __wakeup exists for this object. */
-	if (r == 0) {
+	/* (But don't call __wakeup() if Serializable::unserialize was called */
+	if (r == 0 && !is_from_serialized_data) {
 		zval *ztemp = IGB_REF_VAL(igsd, ref_n);
 		zend_class_entry *ztemp_ce;
 		/* May have created a reference while deserializing an object, if it was recursive. */

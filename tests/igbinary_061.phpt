@@ -1,5 +1,5 @@
 --TEST--
-igbinary session decoder should call __wakup
+igbinary session decoder should call __wakeup
 --INI--
 date.timezone=UTC
 session.serialize_handler=igbinary

@@ -2137,6 +2137,7 @@ inline static int igbinary_unserialize_object(struct igbinary_unserialize_data *
 	int r;
 
 	bool incomplete_class = false;
+	bool is_from_serialized_data = false;
 
 	zval *user_func;
 	zval *retval_ptr;
@@ -2240,6 +2241,7 @@ inline static int igbinary_unserialize_object(struct igbinary_unserialize_data *
 		case igbinary_type_object_ser8:
 		case igbinary_type_object_ser16:
 		case igbinary_type_object_ser32:
+			is_from_serialized_data = true;
 			r = igbinary_unserialize_object_ser(igsd, t, z, ce TSRMLS_CC);
 			break;
 		default:
@@ -2251,7 +2253,7 @@ inline static int igbinary_unserialize_object(struct igbinary_unserialize_data *
 		return r;
 	}
 
-	if (Z_OBJCE_PP(z) != PHP_IC_ENTRY && zend_hash_exists(&Z_OBJCE_PP(z)->function_table, "__wakeup", sizeof("__wakeup"))) {
+	if (!is_from_serialized_data && Z_OBJCE_PP(z) != PHP_IC_ENTRY && zend_hash_exists(&Z_OBJCE_PP(z)->function_table, "__wakeup", sizeof("__wakeup"))) {
 		INIT_PZVAL(&f);
 		ZVAL_STRINGL(&f, "__wakeup", sizeof("__wakeup") - 1, 0);
 		call_user_function_ex(CG(function_table), z, &f, &h, 0, 0, 1, NULL TSRMLS_CC);

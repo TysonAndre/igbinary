@@ -10,10 +10,7 @@ php:
 
 # For unsupported versions(5.3-5.5), run minimal tests to cover 32-bit, 64-bit, and clang
 # Exclude everything else.
-# Allow 7.1 to fail while still a release candidate (Will change shortly)
 matrix:
-  allow_failures:
-  - php: 7.1
   exclude:
   - php: 5.3
     env: CC=clang   CFLAGS="-g -O0"
