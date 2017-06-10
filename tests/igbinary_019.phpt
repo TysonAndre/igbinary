@@ -17,7 +17,7 @@ function test($type, $variable, $test) {
 	echo "\n";
 }
 
-function __autoload($classname) {
+function test_autoload($classname) {
 	class Obj {
 		var $a;
 		var $b;
@@ -28,6 +28,7 @@ function __autoload($classname) {
 		}
 	}
 }
+spl_autoload_register("test_autoload");
 
 test('autoload', '0000000217034f626a140211016106011101620602', false);
 

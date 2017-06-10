@@ -61,11 +61,11 @@ $data = array(
 		'version' => 1,
 	),
 	array(
-		'var' => 'O:8:"stdClass":4:{i:0;i:1;i:1;i:2;i:2;i:3;i:3;i:4;}',
-		'var_e' => (object)array(1, 2, 3, 4),
+		'var' => 'O:8:"stdClass":4:{s:1:"a";i:1;s:1:"b";i:2;s:1:"c";i:3;s:1:"d";i:4;}',
+		'var_e' => (object)array("a"=>1, "b"=>2, "c"=>3, "d"=>4),
 		'type' => 'object',
 		'description' => 'object',
-		'data' => 'AAAAARcIc3RkQ2xhc3MUBAYABgEGAQYCBgIGAwYDBgQ=',
+		'data' => 'AAAAAhcIc3RkQ2xhc3MUBBEBYQYBEQFiBgIRAWMGAxEBZAYE',
 		'version' => 1,
 	),
 	array(
