@@ -1,20 +1,10 @@
 --TEST--
 Object test, __set not called for private attr in extended class
---SKIPIF--
-<?php
-if(!extension_loaded('igbinary')) {
-    echo "skip no igbinary\n";
-}
-
-// http://php.net/manual/en/class.sessionhandlerinterface.php (PHP 5 >= 5.4.0)
-if (version_compare(phpversion(), "5.4.0", "<")) {
-    exit("skip php version less than 5.4.x");
-}
 --FILE--
 <?php
 
 class Bar {
-    public $a = [];
+    public $a = array();
     public $b = array();
     public $c = NULL;
     private $_d = NULL;
@@ -28,9 +18,10 @@ class Foo extends Bar {
 }
 
 $x = new Foo();
-$x->a = [1, 2, 3];
+$x->a = array(1, 2, 3);
 $x->nonexistent = 'aaa';
 
 igbinary_unserialize(igbinary_serialize($x));
+?>
 --EXPECT--
 magic function called for nonexistent with 'aaa'

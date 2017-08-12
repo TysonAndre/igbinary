@@ -5,20 +5,8 @@ date.timezone=UTC
 session.serialize_handler=igbinary
 --SKIPIF--
 <?php
-if (!extension_loaded('session')) {
-	exit('skip session extension not loaded');
-}
-
-ob_start();
-phpinfo(INFO_MODULES);
-$str = ob_get_clean();
-
-$array = explode("\n", $str);
-$array = preg_grep('/^igbinary session support.*yes/', $array);
-if (!$array) {
-	exit('skip igbinary session handler not available');
-}
-
+require_once __DIR__ . '/igbinary_session_skipif.inc';
+?>
 --FILE--
 <?php
 
