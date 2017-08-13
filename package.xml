@@ -146,6 +146,7 @@
     <file name="igbinary_062.phpt" role="test" />
     <file name="igbinary_bug54662.phpt" role="test" />
     <file name="igbinary_bug72134.phpt" role="test" />
+    <file name="igbinary_session_skipif.inc" role="test" />
     <file name="igbinary_unserialize_v1_compatible.phpt" role="test" />
    </dir>
   </dir>
