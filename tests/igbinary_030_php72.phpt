@@ -1,12 +1,12 @@
 --TEST--
-Unserialize invalid data (PHP 5)
+Unserialize invalid data (php 7.2+)
 --SKIPIF--
 <?php
-if(!extension_loaded('igbinary')) {
+if (!extension_loaded('igbinary')) {
 	echo "skip no igbinary";
 }
-if (PHP_VERSION_ID >= 70000) {
-    echo "Skip php 5.6 or older required\n";
+if (PHP_VERSION_ID < 70200) {
+    echo "Skip php 7.2+ required\n";
 }
 ?>
 --FILE--
@@ -14,7 +14,6 @@ if (PHP_VERSION_ID >= 70000) {
 
 $o = new stdClass();
 $o->{"1"} = "manual";
-
 $datas = array(
 	87817,
 	-1,
@@ -25,7 +24,7 @@ $datas = array(
 	"dakjdh98389\000",
 	null,
 	(object)array(1,2,3),
-    $o,  // some weirdness unserializing with zend_hash_update on strings that are integers.
+    $o,
 );
 
 error_reporting(0);
@@ -58,31 +57,3 @@ foreach ($datas as $data) {
 }
 ?>
 --EXPECT--
-padded should get original
-object(stdClass)#8 (3) {
-  ["0"]=>
-  int(1)
-  ["1"]=>
-  int(2)
-  ["2"]=>
-  int(3)
-}
-vs.
-object(stdClass)#2 (3) {
-  [0]=>
-  int(1)
-  [1]=>
-  int(2)
-  [2]=>
-  int(3)
-}
-padded should get original
-object(stdClass)#11 (1) {
-  [1]=>
-  string(6) "manual"
-}
-vs.
-object(stdClass)#1 (1) {
-  ["1"]=>
-  string(6) "manual"
-}

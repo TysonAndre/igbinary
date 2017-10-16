@@ -54,7 +54,7 @@ class Bench {
 
 	public function writeHeader() {
 		$header = implode("\t", array(
-			'name', 'start time', 'iterations', 'duration', 'rusage',
+			'name', 'start time', 'iterations', 'duration', 'rusage', 'current memory'
 		));
 		echo $header, "\n";
 		$this->headerWritten = true;
@@ -69,13 +69,13 @@ class Bench {
 			$this->writeHeader();
 		}
 
-		printf("%s\t%.6f\t%d\t%.8f\t%.6f\n",
+		printf("%s\t%.6f\t%d\t%.8f\t%.6f\t%dKB\n",
 			$this->name,
 			$this->startTime,
 			$this->iterations,
 			$this->stopTime - $this->startTime,
-			$this->stopUsage - $this->startUsage);
+			$this->stopUsage - $this->startUsage,
+			memory_get_usage() / 1024
+		);
 	}
 }
-
-

@@ -2,12 +2,12 @@
 Object test
 --SKIPIF--
 --FILE--
-<?php 
+<?php
 if(!extension_loaded('igbinary')) {
 	dl('igbinary.' . PHP_SHLIB_SUFFIX);
 }
 
-function test($type, $variable, $test) {
+function test($type, $variable) {
 	$serialized = igbinary_serialize($variable);
 	$unserialized = igbinary_unserialize($serialized);
 //	$serialized = serialize($variable);
@@ -16,7 +16,7 @@ function test($type, $variable, $test) {
 	echo $type, "\n";
 	echo substr(bin2hex($serialized), 8), "\n";
 //	echo $serialized, "\n";
-	echo $test || $unserialized == $variable ? 'OK' : 'ERROR';
+	echo $unserialized == $variable ? 'OK' : 'ERROR';
 	echo "\n";
 }
 
@@ -35,7 +35,7 @@ class Obj {
 $o = new Obj(1, 2, 3);
 
 
-test('object', $o, false);
+test('object', $o);
 
 /*
  * you can add regression tests for your extension here

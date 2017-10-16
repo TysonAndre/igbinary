@@ -1,57 +1,69 @@
 language: php
 
+# When updating 7.2.0X, update the download URL in ci/install_php_custom.sh as well,
+# so that 32-bit testing will work.
+# PHP 5.3 is still supported in igbinary releases; it's just that travis can't/won't build php 5.3 in trusty.
 php:
+  - master
+  - 7.2
   - 7.1
   - 7.0
   - 5.6
   - 5.5
   - 5.4
-  - 5.3
 
-# For unsupported versions(5.3-5.5), run minimal tests to cover 32-bit, 64-bit, and clang
+# For unsupported versions(5.4-5.5), run minimal tests to cover 32-bit, 64-bit, and clang
 # Exclude everything else.
 matrix:
   exclude:
-  - php: 5.3
-    env: CC=clang   CFLAGS="-g -O0"
-  - php: 5.3
-    env: CC=gcc-4.6 CFLAGS=""
-  - php: 5.3
-    env: CC=gcc-4.6 CFLAGS="-g -O0 -fstack-protector -fstack-protector-all"
   - php: 5.4
     env: CC=clang   CFLAGS="-g -O0"
   - php: 5.4
-    env: CC=gcc-4.6 CFLAGS=""
+    env: CC=gcc-4.8 CFLAGS="-g"
   - php: 5.4
-    env: CC=gcc-4.6 CFLAGS="-g -O0 -fstack-protector -fstack-protector-all"
+    env: CC=gcc-4.8 CXX=g++-4.8 USE_32BIT=1 PHP_CUSTOM=maintainer-zts PHP_CONFIGURE_ARGS='--disable-all --enable-maintainer-zts --enable-debug --enable-cgi --enable-session --enable-json'
   - php: 5.5
     env: CC=clang   CFLAGS="-g -O0"
   - php: 5.5
-    env: CC=gcc-4.6 CFLAGS=""
+    env: CC=gcc-4.8 CFLAGS=""
   - php: 5.5
-    env: CC=gcc-4.6 CFLAGS="-g -O0 -fstack-protector -fstack-protector-all"
+    env: CC=gcc-4.8 CXX=g++-4.8 USE_32BIT=1 PHP_CUSTOM=maintainer-zts PHP_CONFIGURE_ARGS='--disable-all --enable-maintainer-zts --enable-debug --enable-cgi --enable-session --enable-json'
+  - php: 7.0
+    env: CC=clang   CFLAGS="-g -O0"
+  - php: 7.1
+    env: CC=clang   CFLAGS="-O3" SKIP_VALGRIND=1
+  - php: 7.1
+    env: CC=gcc-4.8 CFLAGS="-g -O0 -fstack-protector -fstack-protector-all" SKIP_VALGRIND=1
+  - php: 7.2
+    env: CC=clang   CFLAGS="-g -O0"
+  - php: master
+    env: CC=clang   CFLAGS="-O3" SKIP_VALGRIND=1
+  - php: master
+    env: CC=clang   CFLAGS="-g -O0"
+  - php: master
+    env: CC=gcc-4.8 CFLAGS=""
+  - php: master
+    env: CC=gcc-4.8 CXX=g++-4.8 USE_32BIT=1 PHP_CUSTOM=maintainer-zts PHP_CONFIGURE_ARGS='--disable-all --enable-maintainer-zts --enable-debug --enable-cgi --enable-session --enable-json'
 
 cache:
   directories:
     - $HOME/travis_cache
 
 env:
-  - CC=clang   CFLAGS=""
+  - CC=clang   CFLAGS="-O3" SKIP_VALGRIND=1
   - CC=clang   CFLAGS="-g -O0"
-  - CC=gcc-4.6 CFLAGS=""
-  - CC=gcc-4.6 CFLAGS="-g -O0 -fstack-protector -fstack-protector-all"
-  - CC=gcc-4.6 CFLAGS="-g" VALGRIND=1
-  - CC=gcc-4.6 CXX=g++-4.6 USE_32BIT=1 VALGRIND=1 PHP_CUSTOM=maintainer-zts PHP_CONFIGURE_ARGS='--disable-all --enable-maintainer-zts --enable-debug --enable-cgi --enable-session --enable-json'
+  - CC=gcc-4.8 CFLAGS=""
+  - CC=gcc-4.8 CFLAGS="-g -O0 -fstack-protector -fstack-protector-all" SKIP_VALGRIND=1
+  - CC=gcc-4.8 CXX=g++-4.8 USE_32BIT=1 PHP_CUSTOM=maintainer-zts PHP_CONFIGURE_ARGS='--disable-all --enable-maintainer-zts --enable-debug --enable-cgi --enable-session --enable-json'
 
 install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq $CC
   # For 32-bit installations: Install multilib so it can be compiled, as well libc6-dbg:i386 so that valgrind will work.
-  - if [ "x$USE_32BIT" != "x" ]; then sudo apt-get install -y $CXX g++-multilib libc6-dev-i386 libc6-dbg:i386; export CC="$PWD/ci/gcc-32.sh"; export CXX="$PWD/ci/g++-32.sh"; $CC --version;  fi
+  - if [ "x$USE_32BIT" != "x" ]; then sudo apt-get install -y $CXX g++-4.8-multilib libc6-dev-i386 libc6-dbg:i386; export CC="$PWD/ci/gcc-32.sh"; export CXX="$PWD/ci/g++-32.sh"; $CC --version;  fi
   # If making a 32-bit build: Automatically determine and download the latest patch of each minor version we support.
+  - if [ "x$SKIP_VALGRIND" = "x" ]; then sudo apt-get install -qq valgrind; valgrind --version; fi
   - if [ "x$PHP_CUSTOM" != "x" ]; then export PHP_CUSTOM_VERSION=$(./ci/get_global_php_version.sh); echo "Version is $PHP_CUSTOM_VERSION"; ./ci/install_php_custom.sh || exit 1; export PATH="$(./ci/generate_php_install_dir.sh)/bin:$PATH"; export PHPRC=$PWD/ci/; else ./ci/wipe_travis_cache.sh; fi
-  - if [ "$VALGRIND" -eq 1 ]; then sudo apt-get install -qq valgrind; export TEST_PHP_ARGS="-m"; fi
-  - if [ "$VALGRIND" -eq 1 ]; then valgrind --version; fi
   - $CC --version
 
 before_script:
@@ -60,10 +72,10 @@ before_script:
 script:
   - phpize
   - ./configure --enable-igbinary
-  # Fix not failing makes in php 5.2 and 5.3
-  - perl -i -pe 's/\-\@if/\@if/' Makefile
   - make
-  - TEST_PHP_ARGS="$TEST_PHP_ARGS --show-diff" REPORT_EXIT_STATUS=1 NO_INTERACTION=1 make test
+  - REPORT_EXIT_STATUS=1 NO_INTERACTION=1 make test
+  # For most travis builds, re-run `make test` with valgrind.
+  - if [ "x$SKIP_VALGRIND" = "x" ]; then export TEST_PHP_ARGS="-m"; REPORT_EXIT_STATUS=1 NO_INTERACTION=1 make test; fi
 
 branches:
   only:

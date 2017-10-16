@@ -6,7 +6,7 @@ require_once 'bench.php';
 
 $b = new Bench('serialize-string-array');
 
-$ser = igbinary_serialize(unserialize(file_get_contents(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'l10n-en.ser')));
+$ser = igbinary_serialize(unserialize(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'l10n-en.ser')));
 
 for ($i = 0; $i < 40; $i++) {
 	$b->start();

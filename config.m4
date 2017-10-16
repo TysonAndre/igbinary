@@ -59,20 +59,20 @@ if test "$PHP_IGBINARY" != "no"; then
 
   dnl GCC
   AC_MSG_CHECKING(compiler type)
-  if test ! -z "`$CC --version | grep -i GCC`"; then
-    AC_MSG_RESULT(gcc)
-    if test -z "`echo $CFLAGS | grep -- -O0`"; then
-      PHP_IGBINARY_CFLAGS="$CFLAGS -Wall -Wpointer-arith -Wmissing-prototypes -Wstrict-prototypes -Wcast-align -Wshadow -Wwrite-strings -Wswitch -Winline -finline-limit=10000 --param large-function-growth=10000 --param inline-unit-growth=10000"
-    fi
-  elif test ! -z "`$CC --version | grep -i ICC`"; then
-    AC_MSG_RESULT(icc)
-    if test -z "`echo $CFLAGS | grep -- -O0`"; then
-      PHP_IGBINARY_CFLAGS="$CFLAGS -no-prec-div -O3 -x0 -unroll2"
-    fi
-  elif test ! -z "`$CC --version | grep -i CLANG`"; then
+  if test ! -z "`$CC --version | grep -i CLANG`"; then
     AC_MSG_RESULT(clang)
     if test -z "`echo $CFLAGS | grep -- -O0`"; then
       PHP_IGBINARY_CFLAGS="$CFLAGS -Wall -O2"
+    fi
+  elif test "$GCC" = yes; then
+    AC_MSG_RESULT(gcc)
+    if test -z "`echo $CFLAGS | grep -- '-O[0123]'`"; then
+      PHP_IGBINARY_CFLAGS="$CFLAGS -O2 -Wall -Wpointer-arith -Wmissing-prototypes -Wstrict-prototypes -Wcast-align -Wshadow -Wwrite-strings -Wswitch -finline-limit=10000 --param large-function-growth=10000 --param inline-unit-growth=10000"
+    fi
+  elif test "$ICC" = yes; then
+    AC_MSG_RESULT(icc)
+    if test -z "`echo $CFLAGS | grep -- -O0`"; then
+      PHP_IGBINARY_CFLAGS="$CFLAGS -no-prec-div -O3 -x0 -unroll2"
     fi
   else
     AC_MSG_RESULT(other)

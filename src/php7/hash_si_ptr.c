@@ -73,8 +73,6 @@ int hash_si_ptr_init(struct hash_si_ptr *h, size_t size) {
 /* }}} */
 /* {{{ hash_si_ptr_deinit */
 void hash_si_ptr_deinit(struct hash_si_ptr *h) {
-	size_t i;
-
 	free(h->data);
 	h->data = NULL;
 

@@ -19,6 +19,7 @@
 #endif
 
 #include <stddef.h>
+#include "zend_types.h"
 
 /** Key/value pair of hash_si.
  * @author Oleg Grenrus <oleg.grenrus@dynamoid.com>
@@ -26,10 +27,9 @@
  */
 struct hash_si_pair
 {
-	char *key;			/**< Pointer to key. */
-	size_t key_len;		/**< Key length. */
-	uint32_t key_hash;  /**< Key hash. */
-	uint32_t value;		/**< Value. */
+	zend_string* key_zstr;  /* Contains key, key length, and key hash */
+	uint32_t key_hash;		/**< Copy of ZSTR_H(key_zstr). Avoid dereferencing key_zstr if hashes are different. */
+	uint32_t value;		    /**< Value. */
 };
 
 enum hash_si_code {
@@ -45,12 +45,12 @@ struct hash_si_result
 };
 
 /** Hash-array.
- * Like c++ map<char *, int32_t>.
- * Current implementation uses linear probing.
+ * Like c++ unordered_map<char *, int32_t>.
+ * Current implementation uses linear probing (with interval 1, 3, 5, or 7).
  * @author Oleg Grenrus <oleg.grenrus@dynamoid.com>
  */
 struct hash_si {
-	size_t size; 					/**< Allocated size of array. */
+	size_t mask; 					/**< Bitmask for the array. size == mask+1 */
 	size_t used;					/**< Used size of array. */
 	struct hash_si_pair *data;		/**< Pointer to array or pairs of data. */
 };
@@ -94,12 +94,11 @@ int hash_si_find (struct hash_si *h, const char *key, size_t key_len, uint32_t *
 /** Finds value from hash_si.
  * Value returned thru value param.
  * @param h Pointer to hash_si struct.
- * @param key Pointer to key.
- * @param key_len Key length.
+ * @param key zend_string with key
  * @param[out] value Found value.
  * @return 0 if found, 1 if not.
  */
-struct hash_si_result hash_si_find_or_insert(struct hash_si *h, const char *key, size_t key_len, uint32_t value);
+struct hash_si_result hash_si_find_or_insert(struct hash_si *h, zend_string *key, uint32_t value);
 
 /** Remove value from hash_si.
  * Removed value is available thru value param.

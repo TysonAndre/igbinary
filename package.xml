@@ -25,20 +25,20 @@
   <email>teddy.pecl@luuseri.com</email>
   <active>yes</active>
  </lead>
- <developer>
+ <lead>
   <name>Tyson Andre</name>
   <user>tandre</user>
   <email>tysonandre775@hotmail.com</email>
   <active>yes</active>
- </developer>
- <date>2017-03-31</date>
+ </lead>
+ <date>2017-10-15</date>
  <time>16:00:00</time>
  <version>
-  <release>2.0.4</release>
+  <release>2.0.5RC1</release>
   <api>1.1.1</api>
  </version>
  <stability>
-  <release>stable</release>
+  <release>beta</release>
   <api>stable</api>
  </stability>
  <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
@@ -94,6 +94,7 @@
     <file name="igbinary_014.phpt" role="test" />
     <file name="igbinary_015.phpt" role="test" />
     <file name="igbinary_015b.phpt" role="test" />
+    <file name="igbinary_015c.phpt" role="test" />
     <file name="igbinary_016.phpt" role="test" />
     <file name="igbinary_017.phpt" role="test" />
     <file name="igbinary_018.phpt" role="test" />
@@ -109,6 +110,8 @@
     <file name="igbinary_027.phpt" role="test" />
     <file name="igbinary_028.phpt" role="test" />
     <file name="igbinary_029.phpt" role="test" />
+    <file name="igbinary_030_php72.phpt" role="test" />
+    <file name="igbinary_030_php7.phpt" role="test" />
     <file name="igbinary_030.phpt" role="test" />
     <file name="igbinary_031.phpt" role="test" />
     <file name="igbinary_032.phpt" role="test" />
@@ -144,6 +147,10 @@
     <file name="igbinary_060.phpt" role="test" />
     <file name="igbinary_061.phpt" role="test" />
     <file name="igbinary_062.phpt" role="test" />
+    <file name="igbinary_063_php72.phpt" role="test" />
+    <file name="igbinary_063_php7.phpt" role="test" />
+    <file name="igbinary_063.phpt" role="test" />
+    <file name="igbinary_064.phpt" role="test" />
     <file name="igbinary_bug54662.phpt" role="test" />
     <file name="igbinary_bug72134.phpt" role="test" />
     <file name="igbinary_unserialize_v1_compatible.phpt" role="test" />
@@ -164,12 +171,37 @@
  <extsrcrelease />
  <changelog>
   <release>
+   <date>2017-10-15</date>
+   <time>16:00:00</time>
+   <version>
+    <release>2.0.5RC1</release>
+    <api>1.1.1</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>stable</api>
+   </stability>
+   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
+   <notes>
+* Improve performance when unserializing objects/arrays and serializing objects/arrays/strings in php 5/7.
+* Update unserialization of integer object keys for php 7.2: Make those keys accessible when unserializing.
+* Properly pick up presence of gcc for default compiler flags (`cc --version` doesn't contain gcc).
+  Add -O2 to default gcc compiler flags.
+* Use empty string for serializing empty $_SESSION array, similar to "session.serialize_handler=php".
+  Older igbinary releases already unserialize the empty string to the empty array.
+   </notes>
+  </release>
+  <release>
    <date>2017-04-14</date>
    <time>16:00:00</time>
    <version>
     <release>2.0.4</release>
     <api>1.1.1</api>
    </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
    <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
    <notes>
 * Fixes bug #129: Should not call __wakeup() on data which was created by Serializable::unserialize()
@@ -182,6 +214,10 @@
     <release>2.0.3</release>
     <api>1.1.1</api>
    </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
    <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
    <notes>
 - Fixes bug #126: Fatal error: "igbinary_serialize_zval: zval has unknown type 0" (IS_UNDEF)
@@ -196,6 +232,10 @@
     <release>2.0.2</release>
     <api>1.1.1</api>
    </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
    <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
    <notes>
 - Compatible with PHP 5.2 - 7.1

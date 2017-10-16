@@ -38,7 +38,7 @@ inline static uint32_t nextpow2(uint32_t n) {
 int hash_si_init(struct hash_si *h, size_t size) {
 	size = nextpow2(size);
 
-	h->size = size;
+	h->mask = size - 1;
 	h->used = 0;
 	h->data = (struct hash_si_pair *) emalloc(sizeof(struct hash_si_pair) * size);
 	if (h->data == NULL) {
@@ -54,46 +54,77 @@ int hash_si_init(struct hash_si *h, size_t size) {
 void hash_si_deinit(struct hash_si *h) {
 	size_t i;
 
-	for (i = 0; i < h->size; i++) {
-		if (h->data[i].key != NULL) {
-			efree(h->data[i].key);
+	for (i = 0; i <= h->mask; i++) {
+		if (h->data[i].key_zstr != NULL) {
+			zend_string_release(h->data[i].key_zstr);
 		}
 	}
 
 	efree(h->data);
 
-	h->size = 0;
+	h->mask = 0;
 	h->used = 0;
 }
 /* }}} */
 /* {{{ _hash_si_find */
 /** Returns index of key, or where it should be.
  * @param h Pointer to hash_si struct.
- * @param key Pointer to key.
- * @param key_len Key length.
- * @param key_hash precomputed key hash of bytes of key (=zend_inline_hash_func(key, key_len))
+ * @param key_zstr Pointer to key. (Will initialize ZSTR_H(key_zstr) if not already initialized)
  * @return index.
  */
-inline static size_t _hash_si_find(const struct hash_si *h, const char *key, const size_t key_len, const uint32_t key_hash) {
-	uint32_t hv;
-	size_t size;
+inline static struct hash_si_pair *_hash_si_find(const struct hash_si *h, const zend_string *key_zstr, const uint32_t key_hash) {
 	size_t mask;
+	struct hash_si_pair *it;
+	const struct hash_si_pair *last_element;
+	uint32_t increment;
+	uint32_t elem_key_hash;
 
 	assert(h != NULL);
 
-	size = h->size;
-	mask = size - 1;
-	hv = key_hash & mask;
+	mask = h->mask;
+	it = &(h->data[key_hash & mask]);
 
-	while (size > 0 &&
-		h->data[hv].key != NULL &&
-		(h->data[hv].key_hash != key_hash || h->data[hv].key_len != key_len || UNEXPECTED(memcmp(h->data[hv].key, key, key_len) != 0))) {
-		/* linear prob */
-		hv = (hv + 1) & mask;
-		size--;
+	elem_key_hash = it->key_hash;
+	if (elem_key_hash == 0) {
+		/* This slot is empty - PHP guarantees hashes are non-zero */
+		return it;
+	}
+	if (key_hash == elem_key_hash) {
+		const zend_string *elem_key_zstr = it->key_zstr;
+		if (key_zstr == elem_key_zstr || (
+					ZSTR_LEN(key_zstr) == ZSTR_LEN(elem_key_zstr) &&
+					EXPECTED(!memcmp(ZSTR_VAL(key_zstr), ZSTR_VAL(elem_key_zstr), ZSTR_LEN(elem_key_zstr))))) {
+			/* We found an identical key. */
+			return it;
+		}
 	}
 
-	return hv;
+	increment = ((key_hash >> 16) & 6) | 1; /* An odd number < size to increment by (1, 3, 5, or 7). Avoid clumping. */
+	last_element = h->data + mask;
+
+	/* Continue scanning, we'll reach an empty element eventually (odd number increment over a hash table of size (2^n) will traverse the entire map). */
+	while (1) {
+		it += increment;
+		if (it > last_element) {
+			it -= (mask + 1);
+		}
+
+		elem_key_hash = it->key_hash;
+		if (elem_key_hash == 0) {
+			/* This slot is empty - PHP guarantees hashes are non-zero */
+			return it;
+		}
+		if (key_hash == elem_key_hash) {
+			const zend_string *elem_key_zstr = it->key_zstr;
+			if (EXPECTED(key_zstr == elem_key_zstr || (
+		                ZSTR_LEN(key_zstr) == ZSTR_LEN(elem_key_zstr) &&
+		                EXPECTED(!memcmp(ZSTR_VAL(key_zstr), ZSTR_VAL(elem_key_zstr), ZSTR_LEN(elem_key_zstr)))))) {
+				/* We found an identical key. */
+				return it;
+			}
+		}
+		/* linear probing by increment if we found a different key */
+	}
 }
 /* }}} */
 /* {{{ hash_si_rehash */
@@ -102,23 +133,31 @@ inline static size_t _hash_si_find(const struct hash_si *h, const char *key, con
  */
 inline static void hash_si_rehash(struct hash_si *h) {
 	size_t i;
+	size_t size;
 	struct hash_si newh;
+	struct hash_si_pair *data;
+	struct hash_si_pair *new_data;
 
 	assert(h != NULL);
+	size = h->mask + 1;
 
-	hash_si_init(&newh, h->size * 2);
+	hash_si_init(&newh, size * 2);
+	data = h->data;
+	new_data = newh.data;
 
-	for (i = 0; i < h->size; i++) {
-		const struct hash_si_pair *old_pair = &(h->data[i]);
-		if (old_pair->key != NULL) {
-			uint32_t hv = _hash_si_find(&newh, old_pair->key, old_pair->key_len, old_pair->key_hash);
-			newh.data[hv] = *old_pair;
+	for (i = 0; i < size; i++) {
+		const struct hash_si_pair *old_pair = &data[i];
+		const zend_string *key_zstr = old_pair->key_zstr;
+		if (key_zstr != NULL) {
+			/* We already computed the hash, avoid recomputing it. */
+			struct hash_si_pair *new_data_entry = _hash_si_find((const struct hash_si*) &newh, key_zstr, old_pair->key_hash);
+			*new_data_entry = *old_pair;
 		}
 	}
 
 	efree(h->data);
-	h->data = newh.data;
-	h->size *= 2;
+	h->data = new_data;
+	h->mask = size * 2 - 1;
 }
 /* }}} */
 /* {{{ hash_si_insert */
@@ -171,33 +210,23 @@ int hash_si_find(struct hash_si *h, const char *key, size_t key_len, uint32_t *v
 */
 /* }}} */
 /* {{{ hash_si_find_or_insert */
-struct hash_si_result hash_si_find_or_insert(struct hash_si *h, const char *key, size_t key_len, uint32_t value) {
-	uint32_t hv;
-	uint32_t key_hash;
+struct hash_si_result hash_si_find_or_insert(struct hash_si *h, zend_string *key_zstr, uint32_t value) {
 	struct hash_si_result result;
 	struct hash_si_pair *pair;
+	uint32_t key_hash = ZSTR_HASH(key_zstr);
 
-	assert(h != NULL);
+	pair = _hash_si_find(h, key_zstr, key_hash);
 
-	key_hash = zend_inline_hash_func(key, key_len);
-	hv = _hash_si_find(h, key, key_len, key_hash);
-	pair = &h->data[hv];
+	if (pair->key_zstr == NULL) {
+		zend_string_addref(key_zstr);
 
-	if (pair->key == NULL) {
-		char* copy = emalloc(key_len);
-		if (copy == NULL) {
-			result.code = hash_si_code_exception;
-			return result;
-		}
-		memcpy(copy, key, key_len);
-
-		pair->key = copy;
-		pair->key_len = key_len;
+		/* Having already computed the hash in the zend_string, insert that into the hash table */
+		pair->key_zstr = key_zstr;
 		pair->key_hash = key_hash;
 		pair->value = value;
 
 		h->used++;
-		if (h->size / 4 * 3 < h->used) {
+		if (h->mask * 3 / 4 < h->used) {
 			hash_si_rehash(h);
 		}
 
@@ -205,7 +234,7 @@ struct hash_si_result hash_si_find_or_insert(struct hash_si *h, const char *key,
 		return result;
 	} else {
 		result.code = hash_si_code_exists;
-		result.value = h->data[hv].value;
+		result.value = pair->value;
 		return result;
 	}
 }
@@ -236,7 +265,7 @@ size_t hash_si_size(struct hash_si *h) {
 size_t hash_si_capacity(struct hash_si *h) {
 	assert(h != NULL);
 
-	return h->size;
+	return h->mask + 1;
 }
 /* }}} */
 

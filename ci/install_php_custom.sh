@@ -1,5 +1,14 @@
 #!/bin/bash -xeu
 
+# Required env variables:
+#  PHP_CONFIGURE_ARGS
+#  PHP_CUSTOM_VERSION (E.g. 7.1.7)
+#  PHP_INSTALL_DIR (path to installation directory)
+
+# optional env vars:
+#  CFLAGS
+#  CC
+#  PATH
 echo "Attempting to install PHP from source, PHP version '$PHP_CUSTOM_VERSION'/ configure args '$PHP_CONFIGURE_ARGS'"
 if [ "x$PHP_CUSTOM_VERSION" = "x" -o "x$PHP_CONFIGURE_ARGS" = "x" ] ; then 
 	echo "Missing php version or configuration arguments";
@@ -13,6 +22,8 @@ if [ -x $PHP_INSTALL_DIR/bin/php ] ; then
 	exit 0
 fi
 PHP_CUSTOM_NORMAL_VERSION=${PHP_CUSTOM_VERSION//RC[0-9]/}
+PHP_CUSTOM_NORMAL_VERSION=${PHP_CUSTOM_NORMAL_VERSION//alpha[0-9]/}
+PHP_CUSTOM_NORMAL_VERSION=${PHP_CUSTOM_NORMAL_VERSION//beta[0-9]/}
 PHP_FOLDER="php-$PHP_CUSTOM_VERSION"
 # Remove cache if it somehow exists
 if [ "x${TRAVIS:-0}" != "x" ]; then
@@ -20,7 +31,13 @@ if [ "x${TRAVIS:-0}" != "x" ]; then
 fi
 # Otherwise, put a minimal installation inside of the cache.
 PHP_TAR_FILE="$PHP_FOLDER.tar.bz2"
-curl --verbose https://secure.php.net/distributions/$PHP_TAR_FILE -o $PHP_TAR_FILE
+if [ "$PHP_CUSTOM_NORMAL_VERSION" != "7.2.0" ] ; then
+    curl --verbose https://secure.php.net/distributions/$PHP_TAR_FILE -o $PHP_TAR_FILE
+else
+    curl --verbose https://downloads.php.net/~remi/php-7.2.0RC4.tar.bz2 -o $PHP_TAR_FILE
+    PHP_FOLDER="php-7.2.0RC4"
+fi
+
 tar xjf $PHP_TAR_FILE
 
 pushd $PHP_FOLDER

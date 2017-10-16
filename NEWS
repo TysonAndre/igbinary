@@ -1,3 +1,12 @@
+2.0.5RC1 2017-10-15
+========
+* Improve performance when unserializing objects/arrays and serializing objects/arrays/strings in php 5/7.
+* Update unserialization of integer object keys for php 7.2: Make those keys accessible when unserializing.
+* Properly pick up presence of gcc for default compiler flags (`cc --version` doesn't contain gcc).
+  Add -O2 to default gcc compiler flags.
+* Use empty string for serializing empty $_SESSION array, similar to "session.serialize_handler=php".
+  Older igbinary releases already unserialize the empty string to the empty array.
+
 2.0.4 2017-04-14
 ========
 * Fixes bug #129: Should not call __wakeup() on data which was created by Serializable::unserialize()

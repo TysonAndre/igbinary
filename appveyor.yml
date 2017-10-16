@@ -17,15 +17,15 @@ build_script:
 
     C:\projects\php-sdk\bin\phpsdk_setvars.bat
 
-    git clone --depth=1 --branch=PHP-7.0 https://github.com/php/php-src C:\projects\php-src
+    git clone --depth=1 --branch=PHP-7.1 https://github.com/php/php-src C:\projects\php-src
 
     mkdir C:\projects\php-src\ext\igbinary
 
     xcopy %APPVEYOR_BUILD_FOLDER% C:\projects\php-src\ext\igbinary /s /e /y
 
-    wget http://windows.php.net/downloads/php-sdk/deps-7.0-vc14-x86.7z
+    wget http://windows.php.net/downloads/php-sdk/deps-7.1-vc14-x86.7z
 
-    7z x -y deps-7.0-vc14-x86.7z -oC:\projects\php-src
+    7z x -y deps-7.1-vc14-x86.7z -oC:\projects\php-src
 
     cd C:\projects\php-src
 
@@ -38,6 +38,8 @@ build_script:
 
 test_script:
 - cmd: cd C:\projects\php-src
+- cmd: set NO_INTERACTION=1
+- cmd: set REPORT_EXIT_STATUS=1
 - cmd: nmake test TESTS=C:\projects\php-src\ext\igbinary\tests
 
 #artifacts:
