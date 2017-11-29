@@ -22,7 +22,7 @@ struct zval;
 /** Binary protocol version of igbinary. */
 #define IGBINARY_FORMAT_VERSION 0x00000002
 
-#define PHP_IGBINARY_VERSION "2.0.5RC1"
+#define PHP_IGBINARY_VERSION "2.0.5"
 
 /* Macros */
 

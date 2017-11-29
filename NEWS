@@ -1,3 +1,8 @@
+2.0.5 2017-11-04
+========
+
+* Same as 2.0.5RC1 (no bugs were reported in that release candidate)
+
 2.0.5RC1 2017-10-15
 ========
 * Improve performance when unserializing objects/arrays and serializing objects/arrays/strings in php 5/7.

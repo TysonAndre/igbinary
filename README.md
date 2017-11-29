@@ -12,7 +12,7 @@ reduction in storage requirement can be expected. Specific number depends on
 your data.
 
 Unserialization performance is at least on par with the standard PHP serializer.
-Serialization performance depends on the "compact_strings" option which enables
+Serialization performance depends on the `igbinary.compact_strings` option which enables
 duplicate string tracking. String are inserted to a hash table which adds some
 overhead. In usual scenarios this does not have much significance since usage
 pattern is "serialize rarely, unserialize often". With "compact_strings"
@@ -29,9 +29,9 @@ Features
 - Serializable -interface
 - Data portability between platforms (32/64bit, endianess)
 - Tested on Linux amd64, Linux ARM, Mac OSX x86, HP-UX PA-RISC and NetBSD sparc64
-- Hooks up to APC opcode cache as a serialization handler (APC 3.1.7+)
-  (Hooks up to the substitute APCu for recent php releases)
-- Compatible with PHP 5.2 &ndash; 5.6, 7.0 &ndash; 7.1
+- Hooks up to the APCu in-memory key-value store as a serialization handler.
+  (For older PHP releases, this also hooks up to APC opcode cache(APC 3.1.7+)
+- Compatible with PHP 5.2 &ndash; 5.6, 7.0 &ndash; 7.2
 
 Implementation details
 ----------------------
@@ -48,7 +48,7 @@ Igbinary uses two specific strategies to minimize the size of the serialized
 output.
 
 1. Repetitive strings are stored only once. Collections of objects benefit
-   significantly from this. See "compact_strings" option.
+   significantly from this. See the `igbinary.compact_strings` option.
 
 2. Numerical values are stored in the smallest primitive data type
    available:
@@ -88,16 +88,17 @@ Sometimes phpize must be substituted with phpize5. In such cases the following
 option must be given to configure script: "--with-php-config=.../php-config5"
 
 1. `phpize`
-2. `./configure:
+2. `./configure`
+
     - With GCC: `./configure CFLAGS="-O2 -g" --enable-igbinary`
     - With ICC (Intel C Compiler) `./configure CFLAGS=" -no-prec-div -O3 -xO -unroll2 -g" CC=icc --enable-igbinary`
     - With clang: `./configure CC=clang CFLAGS="-O0 -g" --enable-igbinary`
 3. `make`
 4. `make test`
 5. `make install`
-6. igbinary.so is installed to the default extension directory
+6. `igbinary.so` is installed to the default extension directory
 
-### To run APCu test
+### To run APCu test cases
 
 ```
 # go to modules directory
@@ -108,7 +109,7 @@ cd modules
 /opt/lib/php/extensions/no-debug-non-zts-20121212/apcu.so
 ```
 
-Similar approach should work for APC.
+A similar approach should work for APC.
 
 ### Installing on Windows
 
@@ -120,7 +121,7 @@ Bugs & Contributions
 Mailing list for bug reports and other development discussion can be found
 at http://groups.google.com/group/igbinary
 
-Fill bug reports at
+File bug reports at
 https://github.com/igbinary/igbinary/issues
 
 The preferred ways for contributions are pull requests and email patches
@@ -130,7 +131,7 @@ Utilizing in other extensions
 -----------------------------
 
 Igbinary can be called from other extensions fairly easily. Igbinary installs
-its header file to _ext/igbinary/igbinary.h_. There are just two straighforward
+its header file to _ext/igbinary/igbinary.h_. There are just two straightforward
 functions: `igbinary_serialize` and `igbinary_unserialize`. Look at _igbinary.h_ for
 prototypes and usage.
 
@@ -143,6 +144,4 @@ Trivia
 Where does the name "igbinary" come from? There was once a similar project
 called fbinary but it has disappeared from the Internet a long time ago. Its
 architecture wasn't particularly clean either. IG is an abbreviation for a
-finnish social networking site IRC-Galleria (http://irc-galleria.net/)
-
-
+Finnish social networking site IRC-Galleria (http://irc-galleria.net/)

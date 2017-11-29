@@ -31,19 +31,19 @@
   <email>tysonandre775@hotmail.com</email>
   <active>yes</active>
  </lead>
- <date>2017-10-15</date>
+ <date>2017-11-04</date>
  <time>16:00:00</time>
  <version>
-  <release>2.0.5RC1</release>
+  <release>2.0.5</release>
   <api>1.1.1</api>
  </version>
  <stability>
-  <release>beta</release>
+  <release>stable</release>
   <api>stable</api>
  </stability>
  <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
  <notes>
-* Fixes bug #129: Should not call __wakeup() on data which was created by Serializable::unserialize()
+* Same as 2.0.5RC1 (no bugs were reported in that release candidate)
  </notes>
  <contents>
   <dir name="/">
@@ -170,6 +170,22 @@
  <providesextension>igbinary</providesextension>
  <extsrcrelease />
  <changelog>
+  <release>
+   <date>2017-11-04</date>
+   <time>16:00:00</time>
+   <version>
+    <release>2.0.5</release>
+    <api>1.1.1</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
+   <notes>
+* Same as 2.0.5RC1 (no bugs were reported in that release candidate)
+   </notes>
+  </release>
   <release>
    <date>2017-10-15</date>
    <time>16:00:00</time>

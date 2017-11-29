@@ -44,11 +44,11 @@ Building igbinary
 
 See https://wiki.php.net/internals/windows/stepbystepbuild#building\_pecl\_extensions
 
-### Install APCU (optional)
+### Install APCu (optional)
 
 Note: The Windows build hasn't worked for a while in 5.6, so there may be compilation errors or test failures.
 
-TODO: Make sure that `config.w32` works without APCU installed.
+TODO: Make sure that `config.w32` works without APCu installed.
 
 > 1. Open the extension's page on PECL ([APCu](https://pecl.php.net/package/APCu))
 > 2. Download the extension source either by:
@@ -100,7 +100,7 @@ Similar to the above instructions.
 4. Extract or clone the extension source code to the pecl directory
 
    - if cloning, clone to a subdirectory, e.g. C:\php-sdk\phpdev\vc11\x86\pecl\igbinary
-   - source code archive should already contain a subdirectory with a name like igbinary-2.0.4. That should be renamed to igbinary.
+   - source code archive should already contain a subdirectory with a name like igbinary-2.0.5. That should be renamed to igbinary.
 5. Open a command prompt, run the setvars script, and enter your PHP source directory (not the extension directory)
 6. Rebuild the configure script by running:
 
