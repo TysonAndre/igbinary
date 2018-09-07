@@ -25,9 +25,8 @@
  * @author Oleg Grenrus <oleg.grenrus@dynamoid.com>
  * @see hash_si
  */
-struct hash_si_pair
-{
-	zend_string* key_zstr;  /* Contains key, key length, and key hash */
+struct hash_si_pair {
+	zend_string *key_zstr; /* Contains key, key length, and key hash */
 	uint32_t key_hash;		/**< Copy of ZSTR_H(key_zstr). Avoid dereferencing key_zstr if hashes are different. */
 	uint32_t value;		    /**< Value. */
 };
@@ -38,8 +37,7 @@ enum hash_si_code {
 	hash_si_code_exception
 };
 
-struct hash_si_result
-{
+struct hash_si_result {
 	enum hash_si_code code;
 	uint32_t value;
 };
@@ -60,13 +58,13 @@ struct hash_si {
  * @param size initial size of the hash array.
  * @return 0 on success, 1 else.
  */
-int hash_si_init (struct hash_si *h, size_t size);
+int hash_si_init(struct hash_si *h, size_t size);
 
 /** Frees hash_si structure.
  * Doesn't call free(h).
  * @param h pointer to hash_si struct.
  */
-void hash_si_deinit (struct hash_si *h);
+void hash_si_deinit(struct hash_si *h);
 
 /** Inserts value into hash_si.
  * @param h Pointer to hash_si struct.
@@ -125,12 +123,12 @@ void hash_si_traverse (struct hash_si *h, int (*traverse_function) (const char *
  * @param h Pointer to hash_si struct.
  * @return Size of hash_si.
  */
-size_t hash_si_size (struct hash_si *h);
+size_t hash_si_size(struct hash_si *h);
 
 /** Returns capacity of hash_si.
  * @param h Pointer to hash_si struct.
  * @return Capacity of hash_si.
  */
-size_t hash_si_capacity (struct hash_si *h);
+size_t hash_si_capacity(struct hash_si *h);
 
 #endif /* HASH_H */

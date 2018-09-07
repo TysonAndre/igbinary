@@ -6,7 +6,7 @@ if(!extension_loaded('igbinary')) {
 	echo "skip no igbinary";
 }
 --FILE--
-<?php 
+<?php
 
 class Foo {
 	public $parent;
@@ -26,6 +26,7 @@ class Foo {
 		$this->parent = $obj;
 	}
 }
+error_reporting(E_ALL);
 
 $obj1 = new Foo();
 

@@ -42,7 +42,7 @@ int hash_si_init(struct hash_si *h, size_t size) {
 
 	h->size = size;
 	h->used = 0;
-	h->data = (struct hash_si_pair *) emalloc(sizeof(struct hash_si_pair) * size);
+	h->data = (struct hash_si_pair *)emalloc(sizeof(struct hash_si_pair) * size);
 	if (h->data == NULL) {
 		return 1;
 	}
@@ -186,7 +186,7 @@ struct hash_si_result hash_si_find_or_insert(struct hash_si *h, const char *key,
 	pair = &h->data[hv];
 
 	if (pair->key == NULL) {
-		char* copy = emalloc(key_len);
+		char *copy = emalloc(key_len);
 		if (copy == NULL) {
 			result.code = hash_si_code_exception;
 			return result;

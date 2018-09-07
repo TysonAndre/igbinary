@@ -9,6 +9,8 @@
 
 #ifndef PHP_IGBINARY_H
 #define PHP_IGBINARY_H
+// Note: php_igbinary.h should contain publicly exposed variables, functions, and macros of igbinary.
+// If a macro is needed by *only* igbinary, put it in igbinary_macros.h
 
 #include "php.h"
 
@@ -63,33 +65,7 @@ PHP_FUNCTION(igbinary_unserialize);
 #define IGBINARY_G(v) (igbinary_globals.v)
 #endif
 
-
-/** Backport macros from php 5.3 */
-#ifndef Z_ISREF_P
-#define Z_ISREF_P(pz)                  PZVAL_IS_REF(pz)
-#endif
-
-#ifndef Z_ISREF_PP
-#define Z_ISREF_PP(ppz)                Z_ISREF_P(*(ppz))
-#endif
-
-#ifndef Z_SET_ISREF_TO_P
-#define Z_SET_ISREF_TO_P(pz, isref)    (Z_ISREF_P(pz) = (isref))
-#endif
-
-#ifndef Z_SET_ISREF_TO_PP
-#define Z_SET_ISREF_TO_PP(ppz, isref)  Z_SET_ISREF_TO_P(*(ppz), isref)
-#endif
-
-#ifndef Z_ADDREF_P
-#define Z_ADDREF_P(pz)                 ZVAL_ADDREF(pz)
-#endif
-
-#ifndef Z_ADDREF_PP
-#define Z_ADDREF_PP(ppz)               Z_ADDREF_P(*(ppz))
-#endif
 #endif /* PHP_IGBINARY_H */
-
 
 /*
  * Local variables:

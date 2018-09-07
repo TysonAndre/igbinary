@@ -23,7 +23,7 @@
 /* {{{ nextpow2 */
 /** Next power of 2.
  * @param n Integer.
- * @return next to n power of 2 .
+ * @return the smallest power of 2 that is >= n.
  */
 inline static uint32_t nextpow2(uint32_t n) {
 	uint32_t m = 1;
@@ -35,12 +35,15 @@ inline static uint32_t nextpow2(uint32_t n) {
 }
 /* }}} */
 /* {{{ hash_si_init */
+/**
+ * Initializes a hash_si value with the given capacity
+ */
 int hash_si_init(struct hash_si *h, size_t size) {
 	size = nextpow2(size);
 
 	h->mask = size - 1;
 	h->used = 0;
-	h->data = (struct hash_si_pair *) emalloc(sizeof(struct hash_si_pair) * size);
+	h->data = (struct hash_si_pair *)emalloc(sizeof(struct hash_si_pair) * size);
 	if (h->data == NULL) {
 		return 1;
 	}
@@ -150,7 +153,7 @@ inline static void hash_si_rehash(struct hash_si *h) {
 		const zend_string *key_zstr = old_pair->key_zstr;
 		if (key_zstr != NULL) {
 			/* We already computed the hash, avoid recomputing it. */
-			struct hash_si_pair *new_data_entry = _hash_si_find((const struct hash_si*) &newh, key_zstr, old_pair->key_hash);
+			struct hash_si_pair *new_data_entry = _hash_si_find((const struct hash_si *)&newh, key_zstr, old_pair->key_hash);
 			*new_data_entry = *old_pair;
 		}
 	}
@@ -160,56 +163,11 @@ inline static void hash_si_rehash(struct hash_si *h) {
 	h->mask = size * 2 - 1;
 }
 /* }}} */
-/* {{{ hash_si_insert */
-/*
-int hash_si_insert(struct hash_si *h, const char *key, size_t key_len, uint32_t value) {
-	uint32_t hv;
-
-	if (h->size / 4 * 3 < h->used + 1) {
-		hash_si_rehash(h);
-	}
-
-	hv = _hash_si_find(h, key, key_len);
-
-	if (h->data[hv].key == NULL) {
-		h->data[hv].key = (char *) emalloc(key_len + 1);
-		if (h->data[hv].key == NULL) {
-			return 1;
-		}
-		memcpy(h->data[hv].key, key, key_len);
-		h->data[hv].key[key_len] = '\0';
-		h->data[hv].key_len = key_len;
-
-		h->used++;
-	} else {
-		return 2;
-	}
-
-	h->data[hv].value = value;
-
-	return 0;
-}
-*/
-/* }}} */
-/* {{{ hash_si_find */
-/*
-int hash_si_find(struct hash_si *h, const char *key, size_t key_len, uint32_t *value) {
-	uint32_t hv;
-
-	assert(h != NULL);
-
-	hv = _hash_si_find(h, key, key_len);
-
-	if (h->data[hv].key == NULL) {
-		return 1;
-	} else {
-		*value = h->data[hv].value;
-		return 0;
-	}
-}
-*/
-/* }}} */
 /* {{{ hash_si_find_or_insert */
+/**
+ * If the string key already exists in the map, return the associated value.
+ * If it doesn't exist, indicate that to the caller.
+ */
 struct hash_si_result hash_si_find_or_insert(struct hash_si *h, zend_string *key_zstr, uint32_t value) {
 	struct hash_si_result result;
 	struct hash_si_pair *pair;
@@ -255,6 +213,7 @@ void hash_si_traverse(struct hash_si *h, int (*traverse_function) (const char *k
 */
 /* }}} */
 /* {{{ hash_si_size */
+/** Returns the number of elements in the hash map h. */
 size_t hash_si_size(struct hash_si *h) {
 	assert(h != NULL);
 
@@ -262,6 +221,7 @@ size_t hash_si_size(struct hash_si *h) {
 }
 /* }}} */
 /* {{{ hash_si_capacity */
+/** Returns the capacity of the hash map h */
 size_t hash_si_capacity(struct hash_si *h) {
 	assert(h != NULL);
 

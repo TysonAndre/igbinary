@@ -1,4 +1,3 @@
-// $Id$
 // vim:ft=javascript
 
 ARG_ENABLE("igbinary", "whether to enable igbinary support", "no");
@@ -40,6 +39,6 @@ if (PHP_IGBINARY == "yes") {
   EXTENSION("igbinary", php_igbinary_src_files);
   configure_module_dirname = old_conf_dir;
   AC_DEFINE('HAVE_IGBINARY', 1, 'Have igbinary support', false);
-  ADD_EXTENSION_DEP('igbinary', 'session');
+  ADD_EXTENSION_DEP('igbinary', 'session', true);
   PHP_INSTALL_HEADERS('ext/igbinary', 'igbinary.h php_igbinary.h ' + subdir + '\\igbinary.h ' + subdir + '\\php_igbinary.h');
 }

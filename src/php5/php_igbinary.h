@@ -88,8 +88,6 @@ PHP_FUNCTION(igbinary_unserialize);
 #define Z_ADDREF_PP(ppz)               Z_ADDREF_P(*(ppz))
 #endif
 
-/** Add macros missing from php 5.2 */
-#include "igbinary_macros.h"
 #endif /* PHP_IGBINARY_H */
 
 /*

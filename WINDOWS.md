@@ -3,7 +3,7 @@ Compiling igbinary from source on Windows
 
 This guide is added for packagers or developers of the igbinary project.
 
-Installing through PECL (Not available yet) is probably easier for users of igbinary?
+Downloading [prebuilt DLLs from PECL](https://pecl.php.net/package/igbinary) is easier for end users.
 
 Setting up a Windows VM
 -----------------------
@@ -24,8 +24,13 @@ If the license expires/is about to expire, it is possible to "re-arm" (extend) t
 Installing Visual Studio
 ------------------------
 
-1. Download the version of Visual Studio needed to build the desired version of PHP (mentioned on https://wiki.php.net/internals/windows/stepbystepbuild#building_pecl_extensions)
-   At the time of writing, that was [Visual Studio Community Edition 2015](https://www.visualstudio.com/products/visual-studio-community-vs) for PHP7.
+1. Download the version of Visual Studio needed to build the desired version of PHP
+   (mentioned on https://wiki.php.net/internals/windows/stepbystepbuild#building_pecl_extensions for PHP 7.0-7.1),
+   and https://wiki.php.net/internals/windows/stepbystepbuild_sdk_2 for PHP 7.2+
+
+   At the time of writing, that was [Visual Studio Community Edition 2015](https://visualstudio.microsoft.com/vs/older-downloads/) for PHP7.0 - 7.2,
+   and [Visual Studio Community Edition 2017](https://www.visualstudio.com/products/visual-studio-community-vs) for PHP 7.2+
+
    Visual Studio 2015 **is not able to compile php 5**. Install Visual Studio 2012 if building php 5.5 or 5.6. Install Visual Studio 2008 if installing php 5.4.
 2. Install Visual Studio 2015. (Use custom installation, make sure that all C++ features are enabled)
 
@@ -133,7 +138,7 @@ Similar to the above instructions.
    nmake
    ```
 
-9. Test the binary with a php -m command, to make sure igbinary is loaded. (and any other extensions such as APCu)
+9. Invoke the `php -m` command to confirm that igbinary is loaded. (and any other extensions such as APCu)
 10. Run the unit tests. Most should pass, some should be skipped (Or be expected failures(XFAIL)), none should fail.
 
     ```

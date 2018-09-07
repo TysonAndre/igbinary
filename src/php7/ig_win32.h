@@ -24,6 +24,9 @@ typedef bool _Bool;
 #  define true 1
 #  define __bool_true_false_are_defined 1
 # endif /* __MSC_VER */
+# ifdef _DEBUG
+#  include <crtdbg.h>
+# endif
 #endif /* PHP_WIN32 */
 
 #endif  /* _IG_WIN32_H */

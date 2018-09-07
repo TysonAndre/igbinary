@@ -30,8 +30,7 @@
  * @author Oleg Grenrus <oleg.grenrus@dynamoid.com>
  * @see hash_si_ptr
  */
-struct hash_si_ptr_pair
-{
+struct hash_si_ptr_pair {
 	zend_uintptr_t key; /**< The key: The address of a pointer, casted to an int (won't be dereferenced). */
 	uint32_t value;		/**< Value. */
 };
@@ -87,9 +86,9 @@ int hash_si_ptr_find (struct hash_si_ptr *h, const zend_uintptr_t key, uint32_t 
  * @param h Pointer to hash_si_ptr struct.
  * @return Size of hash_si_ptr.
  */
-size_t hash_si_ptr_size (struct hash_si_ptr *h);
+size_t hash_si_ptr_size(struct hash_si_ptr *h);
 
-/** 
+/**
  * If the key does not exist, add a mapping from key to value and returns SIZE_MAX
  * If the key does exist, return the corresponding value
  * @param h Pointer to hash_si_ptr struct.
@@ -104,6 +103,6 @@ size_t hash_si_ptr_find_or_insert(struct hash_si_ptr *h, const zend_uintptr_t ke
  * @param h Pointer to hash_si_ptr struct.
  * @return Capacity of hash_si_ptr.
  */
-size_t hash_si_ptr_capacity (struct hash_si_ptr *h);
+size_t hash_si_ptr_capacity(struct hash_si_ptr *h);
 
 #endif /* HASH_PTR_H */

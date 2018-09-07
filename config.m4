@@ -22,13 +22,13 @@ if test "$PHP_IGBINARY" != "no"; then
 
   AC_MSG_CHECKING(PHP version)
 
-  AC_TRY_COMPILE([
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
   #include <$phpincludedir/main/php_version.h>
-  ],[
+  ]], [[
 #if PHP_MAJOR_VERSION > 5
 #error PHP > 5
 #endif
-  ],[
+  ]])],[
   subdir=src/php5
   PHP_IGBINARY_SRC_FILES="$subdir/igbinary.c $subdir/hash_si.c $subdir/hash_si_ptr.c"
   AC_MSG_RESULT([PHP 5])
@@ -67,7 +67,7 @@ if test "$PHP_IGBINARY" != "no"; then
   elif test "$GCC" = yes; then
     AC_MSG_RESULT(gcc)
     if test -z "`echo $CFLAGS | grep -- '-O[0123]'`"; then
-      PHP_IGBINARY_CFLAGS="$CFLAGS -O2 -Wall -Wpointer-arith -Wmissing-prototypes -Wstrict-prototypes -Wcast-align -Wshadow -Wwrite-strings -Wswitch -finline-limit=10000 --param large-function-growth=10000 --param inline-unit-growth=10000"
+      PHP_IGBINARY_CFLAGS="$CFLAGS -O2 -Wall -Wpointer-arith -Wcast-align -Wwrite-strings -Wswitch -finline-limit=10000 --param large-function-growth=10000 --param inline-unit-growth=10000"
     fi
   elif test "$ICC" = yes; then
     AC_MSG_RESULT(icc)
@@ -82,6 +82,7 @@ if test "$PHP_IGBINARY" != "no"; then
   PHP_INSTALL_HEADERS([ext/igbinary], [igbinary.h $subdir/igbinary.h php_igbinary.h $subdir/php_igbinary.h])
   PHP_NEW_EXTENSION(igbinary, $PHP_IGBINARY_SRC_FILES, $ext_shared,, $PHP_IGBINARY_CFLAGS)
   PHP_ADD_EXTENSION_DEP(igbinary, session, true)
+  AC_DEFINE(HAVE_IGBINARY, 1, [Have igbinary support])
   PHP_ADD_BUILD_DIR($abs_builddir/$subdir, 1)
   PHP_SUBST(IGBINARY_SHARED_LIBADD)
 fi

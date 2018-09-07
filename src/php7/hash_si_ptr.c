@@ -56,12 +56,16 @@ inline static uint32_t nextpow2(uint32_t n) {
 }
 /* }}} */
 /* {{{ hash_si_ptr_init */
+/**
+ * @param h the pointer to the hash map that will be initialized in place
+ * @param size the new capacity of the hash map
+ */
 int hash_si_ptr_init(struct hash_si_ptr *h, size_t size) {
 	size = nextpow2(size);
 
 	h->size = size;
 	h->used = 0;
-	h->data = (struct hash_si_ptr_pair*) malloc(sizeof(struct hash_si_ptr_pair) * size);
+	h->data = (struct hash_si_ptr_pair *)malloc(sizeof(struct hash_si_ptr_pair) * size);
 	if (h->data == NULL) {
 		return 1;
 	}
@@ -72,6 +76,10 @@ int hash_si_ptr_init(struct hash_si_ptr *h, size_t size) {
 }
 /* }}} */
 /* {{{ hash_si_ptr_deinit */
+/**
+ * Frees the hash map h
+ * @param h Pointer to the hash map (hash_si_ptr struct) to free internal data structures of
+ */
 void hash_si_ptr_deinit(struct hash_si_ptr *h) {
 	free(h->data);
 	h->data = NULL;
@@ -93,13 +101,13 @@ inline static size_t _hash_si_ptr_find(struct hash_si_ptr *h, const zend_uintptr
 	assert(h != NULL);
 
 	size = h->size;
-	hv = inline_hash_of_address(key) & (h->size-1);
+	hv = inline_hash_of_address(key) & (h->size - 1);
 
 	while (size > 0 &&
 		h->data[hv].key != HASH_PTR_KEY_INVALID &&
 		h->data[hv].key != key) {
 		/* linear prob */
-		hv = (hv + 1) & (h->size-1);
+		hv = (hv + 1) & (h->size - 1);
 		size--;
 	}
 
@@ -133,50 +141,13 @@ inline static void hash_si_ptr_rehash(struct hash_si_ptr *h) {
 	h->size *= 2;
 }
 /* }}} */
-/* {{{ hash_si_ptr_insert */
-/*
-int hash_si_ptr_insert(struct hash_si_ptr *h, const zend_uintptr_t key, uint32_t value) {
-	uint32_t hv;
-
-	if (h->size / 4 * 3 < h->used + 1) {
-		hash_si_ptr_rehash(h);
-	}
-
-	hv = _hash_si_ptr_find(h, key);
-
-	if (h->data[hv].key == HASH_PTR_KEY_INVALID) {
-		h->data[hv].key = key;
-
-		h->used++;
-	} else {
-		return 2;
-	}
-
-	h->data[hv].value = value;
-
-	return 0;
-}
-*/
-/* }}} */
-/* {{{ hash_si_ptr_find */
-/*
-int hash_si_ptr_find(struct hash_si_ptr *h, const zend_uintptr_t key, uint32_t *value) {
-	uint32_t hv;
-
-	assert(h != NULL);
-
-	hv = _hash_si_ptr_find(h, key);
-
-	if (h->data[hv].key == HASH_PTR_KEY_INVALID) {
-		return 1;
-	} else {
-		*value = h->data[hv].value;
-		return 0;
-	}
-}
-*/
-/* }}} */
 /* {{{ hash_si_ptr_find_or_insert */
+/**
+ * @param h the pointer to the hash map.
+ * @param key the key (representing to look up (or insert, if it doesn't exist)
+ * @param value - If the key does not exist, this is the value to associate with key
+ * @return the old value, or SIZE_MAX if the key is brand new.
+ */
 size_t hash_si_ptr_find_or_insert(struct hash_si_ptr *h, const zend_uintptr_t key, uint32_t value) {
 	uint32_t hv;
 
@@ -198,6 +169,10 @@ size_t hash_si_ptr_find_or_insert(struct hash_si_ptr *h, const zend_uintptr_t ke
 }
 /* }}} */
 /* {{{ hash_si_ptr_size */
+/**
+ * @param h the hash map from pointers to integers.
+ * @return the number of elements in this hash map.
+ */
 size_t hash_si_ptr_size(struct hash_si_ptr *h) {
 	assert(h != NULL);
 
@@ -205,6 +180,10 @@ size_t hash_si_ptr_size(struct hash_si_ptr *h) {
 }
 /* }}} */
 /* {{{ hash_si_ptr_capacity */
+/**
+ * @param h the hash map from pointers to integers.
+ * @return the capacity of this hash map.
+ */
 size_t hash_si_ptr_capacity(struct hash_si_ptr *h) {
 	assert(h != NULL);
 

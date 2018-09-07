@@ -1,3 +1,26 @@
+2.0.8dev 2018-??-??
+=======
+
+* Be more aggressive about deduplication when generating serialization of arrays in php 7.0+.
+
+2.0.7 2018-06-27
+=======
+
+* Fix compiler warnings about format strings, for errors that should not occur during normal igbinary usage.
+
+2.0.6 2018-05-12
+=======
+
+* Same as 2.0.6RC1
+
+2.0.6RC1 2018-04-01
+=======
+
+* Fix a bug in Windows debug builds.
+* Emit more specific warnings when __sleep() returns a declared property that was unset.
+* Fix harmless compiler warnings during builds.
+* Fix a build error on PHP7.3-dev.
+
 2.0.5 2017-11-04
 ========
 

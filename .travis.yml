@@ -15,6 +15,8 @@ php:
 # For unsupported versions(5.4-5.5), run minimal tests to cover 32-bit, 64-bit, and clang
 # Exclude everything else.
 matrix:
+  allow_failures:
+  - php: master
   exclude:
   - php: 5.4
     env: CC=clang   CFLAGS="-g -O0"
@@ -73,9 +75,9 @@ script:
   - phpize
   - ./configure --enable-igbinary
   - make
-  - REPORT_EXIT_STATUS=1 NO_INTERACTION=1 make test
+  - REPORT_EXIT_STATUS=1 NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff" make test
   # For most travis builds, re-run `make test` with valgrind.
-  - if [ "x$SKIP_VALGRIND" = "x" ]; then export TEST_PHP_ARGS="-m"; REPORT_EXIT_STATUS=1 NO_INTERACTION=1 make test; fi
+  - if [ "x$SKIP_VALGRIND" = "x" ]; then export TEST_PHP_ARGS="-m --show-diff"; REPORT_EXIT_STATUS=1 NO_INTERACTION=1 make test; fi
 
 branches:
   only:

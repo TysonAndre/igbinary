@@ -4,26 +4,28 @@ igbinary
 [![Build Status](https://travis-ci.org/TysonAndre/igbinary.svg?branch=master)](https://travis-ci.org/TysonAndre/igbinary)
 [![Build status (Windows)](https://ci.appveyor.com/api/projects/status/suhkkumj1yh9dgan?svg=true)](https://ci.appveyor.com/project/TysonAndre/igbinary-bemsx)
 
-Igbinary is a drop in replacement for the standard php serializer. Instead of
-time and space consuming textual representation, igbinary stores php data
-structures in compact binary form. Savings are significant when using
-memcached or similar memory based storages for serialized data. About 50%
-reduction in storage requirement can be expected. Specific number depends on
-your data.
+Igbinary is a drop in replacement for the standard php serializer.
+Instead of the time and space consuming textual representation used by PHP's `serialize`,
+igbinary stores php data structures in a compact binary form.
+Memory savings are significant when using memcached, APCu, or similar memory based storages for serialized data.
+The typical reduction in storage requirements are around 50%.
+The exact percentage depends on your data.
 
-Unserialization performance is at least on par with the standard PHP serializer.
+Unserialization performance is at least on par with the standard PHP serializer, and is much faster for repetitive data.
 Serialization performance depends on the `igbinary.compact_strings` option which enables
-duplicate string tracking. String are inserted to a hash table which adds some
-overhead. In usual scenarios this does not have much significance since usage
-pattern is "serialize rarely, unserialize often". With "compact_strings"
-option igbinary is usually a bit slower than the standard serializer. Without
-it, a bit faster.
+duplicate string tracking.
+String are inserted to a hash table, which adds some overhead when serializing.
+In usual scenarios this does not have much of an impact,
+because the typical usage pattern is "serialize rarely, unserialize often".
+With the `compact_strings` option enabled,
+igbinary is usually a bit slower than the standard serializer.
+Without it, igbinary is a bit faster.
 
 Features
 --------
 
-- Supports same data types as the standard PHP serializer: null, bool, int,
-  float, string, array and objects.
+- Support for the same data types as the standard PHP serializer: null, bool, int,
+  float, string, array and object.
 - `__autoload` & `unserialize_callback_func`
 - `__sleep` & `__wakeup`
 - Serializable -interface
@@ -36,22 +38,22 @@ Features
 Implementation details
 ----------------------
 
-Storing complex PHP data structures like arrays of associative arrays
-with the standard PHP serializer is not very space efficient. The main
-reasons in order of significance are (at least in our applications):
+Storing complex PHP data structures such as arrays of associative arrays
+with the standard PHP serializer is not very space efficient.
+The main reasons of this inefficiency are listed below, in order of significance (at least in our applications):
 
-1. Array keys are repeated redundantly.
+1. Array keys, property names, and class names are repeated redundantly.
 2. Numerical values are plain text.
 3. Human readability adds some overhead.
 
-Igbinary uses two specific strategies to minimize the size of the serialized
+Igbinary uses two strategies to minimize the size of the serialized
 output.
 
-1. Repetitive strings are stored only once. Collections of objects benefit
-   significantly from this. See the `igbinary.compact_strings` option.
+1. Repeated strings are stored only once (this also includes class and property names).
+   Collections of objects benefit significantly from this.
+   See the `igbinary.compact_strings` option.
 
-2. Numerical values are stored in the smallest primitive data type
-   available:
+2. Integer values are stored in the smallest primitive data type available:
     *123* = `int8_t`,
     *1234* = `int16_t`,
     *123456* = `int32_t`
@@ -64,28 +66,53 @@ How to use
 
 Add the following lines to your php.ini:
 
-    ; Load igbinary extension
-    extension=igbinary.so
+```ini
+; Load igbinary extension
+extension=igbinary.so
 
-    ; Use igbinary as session serializer
-    session.serialize_handler=igbinary
+; Use igbinary as session serializer
+session.serialize_handler=igbinary
 
-    ; Enable or disable compacting of duplicate strings
-    ; The default is On.
-    igbinary.compact_strings=On
+; Enable or disable compacting of duplicate strings
+; The default is On.
+igbinary.compact_strings=On
 
-    ; Use igbinary as serializer in APC cache (3.1.7 or later)
-    ;apc.serializer=igbinary
+; If uncommented, use igbinary as the serializer of APCu
+; (For PHP 7, APCu 5.1.10 or newer is strongly recommended)
+; For older PHP versions, APC cache is also supported
+; (must be version 3.1.7 or newer)
+;apc.serializer=igbinary
+```
 
-.. and in your php code replace serialize and unserialize function calls
-with `igbinary_serialize` and `igbinary_unserialize`.
+Then, in your php code, replace `serialize` and `unserialize` function calls
+with [`igbinary_serialize` and `igbinary_unserialize`](./igbinary.php).
 
 Installing
 ----------
 
-Note:
-Sometimes phpize must be substituted with phpize5. In such cases the following
-option must be given to configure script: "--with-php-config=.../php-config5"
+### Linux
+
+If PHP was installed through your your package manager,
+the package manager may also contain prebuilt packages for `igbinary`
+(with a package name similar to php-igbinary)
+
+Igbinary may also be installed with the command `pecl install igbinary` (You will need to enable igbinary in php.ini)
+
+Alternately, you may wish to [build from source](#building-from-source)
+
+### MacOS
+
+`pecl install igbinary` is the recommended installation method (You will need to enable igbinary in php.ini)
+
+Alternately, you may wish to [build from source](#building-from-source).
+
+### Installing on Windows
+
+Prebuilt DLLs can be [downloaded from PECL](https://pecl.php.net/package/igbinary).
+
+If you are a contributor to/packager of igbinary, or need to build from source, see [WINDOWS.md](./WINDOWS.md)
+
+### Building from source
 
 1. `phpize`
 2. `./configure`
@@ -98,23 +125,6 @@ option must be given to configure script: "--with-php-config=.../php-config5"
 5. `make install`
 6. `igbinary.so` is installed to the default extension directory
 
-### To run APCu test cases
-
-```
-# go to modules directory
-cd modules
-
-# ... and create symlink to apcu extension
-# it will be loaded during test suite
-/opt/lib/php/extensions/no-debug-non-zts-20121212/apcu.so
-```
-
-A similar approach should work for APC.
-
-### Installing on Windows
-
-If you are a contributor to/packager of igbinary, see [WINDOWS.md](./WINDOWS.md)
-
 Bugs & Contributions
 --------------------
 
@@ -124,8 +134,10 @@ at http://groups.google.com/group/igbinary
 File bug reports at
 https://github.com/igbinary/igbinary/issues
 
-The preferred ways for contributions are pull requests and email patches
-(in git format). Feel free to fork at http://github.com/igbinary/igbinary
+The preferred way to contribute is with pull requests.
+Feel free to fork this at http://github.com/igbinary/igbinary
+
+See [TESTING.md](./TESTING.md) for advice for testing patches.
 
 Utilizing in other extensions
 -----------------------------

@@ -61,7 +61,7 @@ int hash_si_ptr_init(struct hash_si_ptr *h, size_t size) {
 
 	h->size = size;
 	h->used = 0;
-	h->data = (struct hash_si_ptr_pair*) malloc(sizeof(struct hash_si_ptr_pair) * size);
+	h->data = (struct hash_si_ptr_pair *)malloc(sizeof(struct hash_si_ptr_pair) * size);
 	if (h->data == NULL) {
 		return 1;
 	}
@@ -73,8 +73,6 @@ int hash_si_ptr_init(struct hash_si_ptr *h, size_t size) {
 /* }}} */
 /* {{{ hash_si_ptr_deinit */
 void hash_si_ptr_deinit(struct hash_si_ptr *h) {
-	size_t i;
-
 	free(h->data);
 	h->data = NULL;
 
@@ -95,13 +93,13 @@ inline static size_t _hash_si_ptr_find(struct hash_si_ptr *h, const zend_uintptr
 	assert(h != NULL);
 
 	size = h->size;
-	hv = inline_hash_of_address(key) & (h->size-1);
+	hv = inline_hash_of_address(key) & (h->size - 1);
 
 	while (size > 0 &&
 		h->data[hv].key != HASH_PTR_KEY_INVALID &&
 		h->data[hv].key != key) {
 		/* linear prob */
-		hv = (hv + 1) & (h->size-1);
+		hv = (hv + 1) & (h->size - 1);
 		size--;
 	}
 
