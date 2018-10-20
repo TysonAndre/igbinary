@@ -24,14 +24,24 @@ fi
 PHP_CUSTOM_NORMAL_VERSION=${PHP_CUSTOM_VERSION//RC[0-9]/}
 PHP_CUSTOM_NORMAL_VERSION=${PHP_CUSTOM_NORMAL_VERSION//alpha[0-9]/}
 PHP_CUSTOM_NORMAL_VERSION=${PHP_CUSTOM_NORMAL_VERSION//beta[0-9]/}
-PHP_FOLDER="php-$PHP_CUSTOM_VERSION"
+
 # Remove cache if it somehow exists
 if [ "x${TRAVIS:-0}" != "x" ]; then
-	rm -rf $HOME/travis_cache/
+    rm -rf $HOME/travis_cache/
 fi
-# Otherwise, put a minimal installation inside of the cache.
-PHP_TAR_FILE="$PHP_FOLDER.tar.bz2"
-curl --verbose https://secure.php.net/distributions/$PHP_TAR_FILE -o $PHP_TAR_FILE
+
+if [ "$PHP_CUSTOM_NORMAL_VERSION" == "7.3.0" ] ; then
+    PHP_CUSTOM_VERSION=7.3.0RC3
+    PHP_FOLDER="php-$PHP_CUSTOM_VERSION"
+
+    PHP_TAR_FILE="$PHP_FOLDER.tar.bz2"
+    curl --verbose https://downloads.php.net/~cmb/$PHP_TAR_FILE -o $PHP_TAR_FILE
+else
+    PHP_FOLDER="php-$PHP_CUSTOM_VERSION"
+    # Otherwise, put a minimal installation inside of the cache.
+    PHP_TAR_FILE="$PHP_FOLDER.tar.bz2"
+    curl --verbose https://secure.php.net/distributions/$PHP_TAR_FILE -o $PHP_TAR_FILE
+fi
 
 tar xjf $PHP_TAR_FILE
 

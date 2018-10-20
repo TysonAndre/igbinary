@@ -71,7 +71,7 @@ int hash_si_ptr_insert (struct hash_si_ptr *h, const zend_uintptr_t key, uint32_
 */
 
 /** Finds value from hash_si_ptr.
- * Value returned thru value param.
+ * Value returned through value param.
  * @param h Pointer to hash_si_ptr struct.
  * @param key Pointer to key.
  * @param key_len Key length.

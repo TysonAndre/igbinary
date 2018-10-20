@@ -1,10 +1,11 @@
 language: php
 
-# When updating 7.2.0X, update the download URL in ci/install_php_custom.sh as well,
+# When updating 7.3.0X, update the download URL in ci/install_php_custom.sh as well,
 # so that 32-bit testing will work.
 # PHP 5.3 is still supported in igbinary releases; it's just that travis can't/won't build php 5.3 in trusty.
 php:
   - master
+  - 7.3
   - 7.2
   - 7.1
   - 7.0
@@ -38,6 +39,22 @@ matrix:
     env: CC=gcc-4.8 CFLAGS="-g -O0 -fstack-protector -fstack-protector-all" SKIP_VALGRIND=1
   - php: 7.2
     env: CC=clang   CFLAGS="-g -O0"
+  - php: 7.2
+    env: CC=gcc-4.8 CXX=g++-4.8 USE_32BIT=1 PHP_CUSTOM=maintainer-zts PHP_CONFIGURE_ARGS='--disable-all --enable-maintainer-zts --enable-debug --enable-cgi --enable-session --enable-json'
+    # Note: The version of clang bundled with Ubuntu Trusty can't compile PHP 7.3
+    # ("'asm goto' constructs are not supported yet")
+    # and PHP 7.3 doesn't yet work in Ubuntu Xenial (https://github.com/travis-ci/travis-ci/issues/9717#issuecomment-429564626).
+    # Skip those builds because of that.
+  - php: 7.3
+    env: CC=clang   CFLAGS="-O3" SKIP_VALGRIND=1
+  - php: 7.3
+    env: CC=clang   CFLAGS="-g -O0"
+  - php: 7.3
+    env: CC=gcc-4.8 CFLAGS="-g -O0 -fstack-protector -fstack-protector-all" SKIP_VALGRIND=1
+    # For some reason, the below build job results in code that causes leak checks to fail,
+    # even in tests that don't invoke igbinary (e.g. `LEAK Check for igbinary presence [tests/igbinary_001.phpt]`)
+  - php: 7.3
+    env: CC=gcc-4.8 CFLAGS=""
   - php: master
     env: CC=clang   CFLAGS="-O3" SKIP_VALGRIND=1
   - php: master
@@ -78,6 +95,8 @@ script:
   - REPORT_EXIT_STATUS=1 NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff" make test
   # For most travis builds, re-run `make test` with valgrind.
   - if [ "x$SKIP_VALGRIND" = "x" ]; then export TEST_PHP_ARGS="-m --show-diff"; REPORT_EXIT_STATUS=1 NO_INTERACTION=1 make test; fi
+  # Print a summary of any memory leaks
+  - shopt -s nullglob; head -n 999 tests/*.mem < /dev/null
 
 branches:
   only:

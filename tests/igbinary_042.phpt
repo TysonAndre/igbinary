@@ -10,7 +10,7 @@ if (version_compare(PHP_VERSION, '5.3.0') < 0) {
 	echo "skip closures only for PHP 5.3.0+";
 }
 --FILE--
-<?php 
+<?php
 
 $closure = function ($x) {
 	return $x + 1;

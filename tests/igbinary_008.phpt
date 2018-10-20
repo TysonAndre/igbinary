@@ -2,7 +2,7 @@
 Check for array+string serialization
 --SKIPIF--
 --FILE--
-<?php 
+<?php
 if(!extension_loaded('igbinary')) {
 	dl('igbinary.' . PHP_SHLIB_SUFFIX);
 }

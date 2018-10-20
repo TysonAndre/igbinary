@@ -2,7 +2,7 @@
 Check for simple array serialization
 --SKIPIF--
 --FILE--
-<?php 
+<?php
 if(!extension_loaded('igbinary')) {
 	dl('igbinary.' . PHP_SHLIB_SUFFIX);
 }
@@ -17,7 +17,7 @@ function test($type, $variable) {
 	echo "\n";
 }
 
-test('empty array: ', array());
+test('empty array:', array());
 test('array(1, 2, 3)', array(1, 2, 3));
 test('array(array(1, 2, 3), arr...', array(array(1, 2, 3), array(4, 5, 6), array(7, 8, 9)));
 
@@ -34,7 +34,7 @@ test('array(array(1, 2, 3), arr...', array(array(1, 2, 3), array(4, 5, 6), array
  */
 ?>
 --EXPECT--
-empty array: 
+empty array:
 1400
 OK
 array(1, 2, 3)

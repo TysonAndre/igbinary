@@ -1,11 +1,11 @@
 --TEST--
 Igbinary module info
 --SKIPIF--
-<?php if (!extension_loaded("igbinary")) print "skip"; 
+<?php if (!extension_loaded("igbinary")) print "skip";
 
 ?>
 --FILE--
-<?php 
+<?php
 ob_start();
 phpinfo(INFO_MODULES);
 $str = ob_get_clean();

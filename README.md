@@ -29,7 +29,7 @@ Features
 - `__autoload` & `unserialize_callback_func`
 - `__sleep` & `__wakeup`
 - Serializable -interface
-- Data portability between platforms (32/64bit, endianess)
+- Data portability between platforms (32/64bit, endianness)
 - Tested on Linux amd64, Linux ARM, Mac OSX x86, HP-UX PA-RISC and NetBSD sparc64
 - Hooks up to the APCu in-memory key-value store as a serialization handler.
   (For older PHP releases, this also hooks up to APC opcode cache(APC 3.1.7+)
@@ -92,7 +92,7 @@ Installing
 
 ### Linux
 
-If PHP was installed through your your package manager,
+If PHP was installed through your package manager,
 the package manager may also contain prebuilt packages for `igbinary`
 (with a package name similar to php-igbinary)
 

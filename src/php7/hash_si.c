@@ -38,7 +38,7 @@ inline static uint32_t nextpow2(uint32_t n) {
 /**
  * Initializes a hash_si value with the given capacity
  */
-int hash_si_init(struct hash_si *h, size_t size) {
+int hash_si_init(struct hash_si *h, uint32_t size) {
 	size = nextpow2(size);
 
 	h->mask = size - 1;

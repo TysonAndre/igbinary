@@ -6,7 +6,7 @@ if(!extension_loaded('igbinary')) {
 	echo "skip no igbinary";
 }
 --FILE--
-<?php 
+<?php
 
 function test($variable) {
 	$serialized = igbinary_serialize($variable);

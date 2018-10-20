@@ -4,7 +4,7 @@ Recursive objects
 --INI--
 error_reporting = E_NONE
 --FILE--
-<?php 
+<?php
 if(!extension_loaded('igbinary')) {
 	dl('igbinary.' . PHP_SHLIB_SUFFIX);
 }

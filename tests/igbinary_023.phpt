@@ -1,10 +1,10 @@
 --TEST--
 Resource
 --SKIPIF--
-<?php 
-if (!extension_loaded("igbinary")) print "skip extenion not loaded\n";
+<?php
+if (!extension_loaded("igbinary")) print "skip extension not loaded\n";
 --FILE--
-<?php 
+<?php
 
 function test($type, $variable, $test) {
 	$serialized = igbinary_serialize($variable);

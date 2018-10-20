@@ -6,7 +6,7 @@ if(!extension_loaded('igbinary')) {
 	echo "skip no igbinary";
 }
 --FILE--
-<?php 
+<?php
 
 $datas = array(
 	87817,

@@ -58,7 +58,7 @@ struct hash_si {
  * @param size initial size of the hash array.
  * @return 0 on success, 1 else.
  */
-int hash_si_init(struct hash_si *h, size_t size);
+int hash_si_init(struct hash_si *h, uint32_t size);
 
 /** Frees hash_si structure.
  * Doesn't call free(h).
@@ -78,7 +78,7 @@ int hash_si_insert (struct hash_si *h, const char *key, size_t key_len, uint32_t
 */
 
 /** Finds value from hash_si.
- * Value returned thru value param.
+ * Value returned through value param.
  * @param h Pointer to hash_si struct.
  * @param key Pointer to key.
  * @param key_len Key length.
@@ -90,7 +90,7 @@ int hash_si_find (struct hash_si *h, const char *key, size_t key_len, uint32_t *
 */
 
 /** Finds value from hash_si.
- * Value returned thru value param.
+ * Value returned through value param.
  * @param h Pointer to hash_si struct.
  * @param key Pointer to key.
  * @param key_len Key length.
@@ -100,7 +100,7 @@ int hash_si_find (struct hash_si *h, const char *key, size_t key_len, uint32_t *
 struct hash_si_result hash_si_find_or_insert(struct hash_si *h, const char *key, size_t key_len, uint32_t value);
 
 /** Remove value from hash_si.
- * Removed value is available thru value param.
+ * Removed value is available through value param.
  * @param h Pointer to hash_si struct.
  * @param key Pointer to key.
  * @param key_len Key length.

@@ -1,6 +1,7 @@
 --TEST--
 Unserialize backwards compatible with v1.
---SKIPIF--
+--INI--
+pcre.jit=0
 --FILE--
 <?php
 $data = array(

@@ -4,7 +4,7 @@ Object test, unserialize_callback_func
 --INI--
 unserialize_callback_func=autoload
 --FILE--
-<?php 
+<?php
 if(!extension_loaded('igbinary')) {
 	dl('igbinary.' . PHP_SHLIB_SUFFIX);
 }

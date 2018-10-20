@@ -900,15 +900,15 @@ inline static int igbinary_serialize_chararray(struct igbinary_serialize_data *i
 	if (len <= 0xff) {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_string8 TSRMLS_CC));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, len TSRMLS_CC));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, (uint8_t)len TSRMLS_CC));
 	} else if (len <= 0xffff) {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_string16 TSRMLS_CC));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize16(igsd, len TSRMLS_CC));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize16(igsd, (uint16_t)len TSRMLS_CC));
 	} else {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_string32 TSRMLS_CC));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize32(igsd, len TSRMLS_CC));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize32(igsd, (uint32_t)len TSRMLS_CC));
 	}
 
 	RETURN_1_IF_NON_ZERO(igbinary_serialize_resize(igsd, len TSRMLS_CC));
@@ -950,7 +950,7 @@ inline static int igbinary_serialize_array(struct igbinary_serialize_data *igsd,
 	if (n <= 0xff) {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_array8 TSRMLS_CC));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, n TSRMLS_CC));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, (uint8_t)n TSRMLS_CC));
 
 		if (n == 0) {
 			return 0;
@@ -958,11 +958,11 @@ inline static int igbinary_serialize_array(struct igbinary_serialize_data *igsd,
 	} else if (n <= 0xffff) {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_array16 TSRMLS_CC));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize16(igsd, n TSRMLS_CC));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize16(igsd, (uint16_t)n TSRMLS_CC));
 	} else {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_array32 TSRMLS_CC));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize32(igsd, n TSRMLS_CC));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize32(igsd, (uint32_t)n TSRMLS_CC));
 	}
 
 	/* serialize properties. */
@@ -1071,15 +1071,15 @@ inline static int igbinary_serialize_array_sleep(struct igbinary_serialize_data 
 	if (n <= 0xff) {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_array8 TSRMLS_CC));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, n TSRMLS_CC));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, (uint8_t)n TSRMLS_CC));
 	} else if (n <= 0xffff) {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_array16 TSRMLS_CC));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize16(igsd, n TSRMLS_CC));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize16(igsd, (uint16_t)n TSRMLS_CC));
 	} else {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_array32 TSRMLS_CC));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize32(igsd, n TSRMLS_CC));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize32(igsd, (uint32_t)n TSRMLS_CC));
 	}
 
 	if (n == 0) {
@@ -1776,8 +1776,8 @@ inline static int igbinary_unserialize_chararray(struct igbinary_unserialize_dat
 /* {{{ igbinary_unserialize_array */
 /** Unserializes array. */
 inline static int igbinary_unserialize_array(struct igbinary_unserialize_data *igsd, enum igbinary_type t, zval **z, int object TSRMLS_DC) {
-	size_t n;
-	size_t i;
+	uint32_t n;
+	uint32_t i;
 
 	zval *v = NULL;
 	/*	zval *old_v; */

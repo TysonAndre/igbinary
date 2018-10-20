@@ -86,7 +86,7 @@ void hash_si_ptr_deinit(struct hash_si_ptr *h) {
  * @param key Pointer to key.
  * @return index.
  */
-inline static size_t _hash_si_ptr_find(struct hash_si_ptr *h, const zend_uintptr_t key) {
+inline static uint32_t _hash_si_ptr_find(struct hash_si_ptr *h, const zend_uintptr_t key) {
 	uint32_t hv;
 	size_t size;
 
@@ -132,49 +132,6 @@ inline static void hash_si_ptr_rehash(struct hash_si_ptr *h) {
 	h->data = newh.data;
 	h->size *= 2;
 }
-/* }}} */
-/* {{{ hash_si_ptr_insert */
-/*
-int hash_si_ptr_insert(struct hash_si_ptr *h, const zend_uintptr_t key, uint32_t value) {
-	uint32_t hv;
-
-	if (h->size / 4 * 3 < h->used + 1) {
-		hash_si_ptr_rehash(h);
-	}
-
-	hv = _hash_si_ptr_find(h, key);
-
-	if (h->data[hv].key == HASH_PTR_KEY_INVALID) {
-		h->data[hv].key = key;
-
-		h->used++;
-	} else {
-		return 2;
-	}
-
-	h->data[hv].value = value;
-
-	return 0;
-}
-*/
-/* }}} */
-/* {{{ hash_si_ptr_find */
-/*
-int hash_si_ptr_find(struct hash_si_ptr *h, const zend_uintptr_t key, uint32_t *value) {
-	uint32_t hv;
-
-	assert(h != NULL);
-
-	hv = _hash_si_ptr_find(h, key);
-
-	if (h->data[hv].key == HASH_PTR_KEY_INVALID) {
-		return 1;
-	} else {
-		*value = h->data[hv].value;
-		return 0;
-	}
-}
-*/
 /* }}} */
 /* {{{ hash_si_ptr_find_or_insert */
 size_t hash_si_ptr_find_or_insert(struct hash_si_ptr *h, const zend_uintptr_t key, uint32_t value) {

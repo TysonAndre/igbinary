@@ -94,7 +94,7 @@ void hash_si_ptr_deinit(struct hash_si_ptr *h) {
  * @param key Pointer to key.
  * @return index.
  */
-inline static size_t _hash_si_ptr_find(struct hash_si_ptr *h, const zend_uintptr_t key) {
+inline static uint32_t _hash_si_ptr_find(struct hash_si_ptr *h, const zend_uintptr_t key) {
 	uint32_t hv;
 	size_t size;
 

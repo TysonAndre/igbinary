@@ -944,6 +944,7 @@ inline static int igbinary_serialize_bool(struct igbinary_serialize_data *igsd, 
 /** Serializes zend_long. */
 inline static int igbinary_serialize_long(struct igbinary_serialize_data *igsd, zend_long l) {
 	const bool p = l >= 0;
+	// k is the absolute value of l
 	const zend_ulong k = p ? (zend_ulong)l : -(zend_ulong)l;
 
 	if (k <= 0xff) {
@@ -1048,15 +1049,15 @@ inline static int igbinary_serialize_chararray(struct igbinary_serialize_data *i
 	if (len <= 0xff) {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_string8));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, len));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, (uint8_t)len));
 	} else if (len <= 0xffff) {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_string16));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize16(igsd, len));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize16(igsd, (uint16_t)len));
 	} else {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_string32));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize32(igsd, len));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize32(igsd, (uint32_t)len));
 	}
 
 	RETURN_1_IF_NON_ZERO(igbinary_serialize_resize(igsd, len));
@@ -1067,7 +1068,7 @@ inline static int igbinary_serialize_chararray(struct igbinary_serialize_data *i
 	return 0;
 }
 /* }}} */
-/* {{{ igbinay_serialize_array */
+/* {{{ igbinary_serialize_array */
 /**
  * Serializes an array's or object's inner properties.
  * If properties or keys are unexpectedly added (e.g. by __sleep() or serialize() elsewhere), this will skip serializing them.
@@ -1106,7 +1107,7 @@ inline static int igbinary_serialize_array(struct igbinary_serialize_data *igsd,
 	if (n <= 0xff) {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_array8));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, n));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, (uint8_t)n));
 
 		if (n == 0) {
 			return 0;
@@ -1114,11 +1115,11 @@ inline static int igbinary_serialize_array(struct igbinary_serialize_data *igsd,
 	} else if (n <= 0xffff) {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_array16));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize16(igsd, n));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize16(igsd, (uint16_t)n));
 	} else {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_array32));
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize32(igsd, n));
+		RETURN_1_IF_NON_ZERO(igbinary_serialize32(igsd, (uint32_t)n));
 	}
 
 	/* serialize properties. */
@@ -1162,7 +1163,7 @@ inline static int igbinary_serialize_array(struct igbinary_serialize_data *igsd,
 inline static int igbinary_serialize_array_ref(struct igbinary_serialize_data *igsd, zval *z, bool object) {
 	size_t t;
 	zend_uintptr_t key;  /* The address of the pointer to the zend_refcounted struct or other struct */
-	static int INVALID_KEY;  /* Not used, but we take the pointer of this knowing other zvals wont share it*/
+	static int INVALID_KEY;  /* Not used, but we take the pointer of this knowing other zvals won't share it*/
 
 	/* Similar to php_var_serialize_intern's first part, as well as php_add_var_hash, for printing R: (reference) or r:(object) */
 	/* However, it differs from the built in serialize() in that references to objects are preserved when serializing and unserializing? (TODO check, test for backwards compatibility) */
@@ -1248,15 +1249,15 @@ inline static int igbinary_serialize_array_sleep(struct igbinary_serialize_data 
 	if (n <= 0xff) {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_array8))
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, n))
+		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, (uint8_t)n))
 	} else if (n <= 0xffff) {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_array16))
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize16(igsd, n))
+		RETURN_1_IF_NON_ZERO(igbinary_serialize16(igsd, (uint16_t)n))
 	} else {
 		RETURN_1_IF_NON_ZERO(igbinary_serialize8(igsd, igbinary_type_array32))
 
-		RETURN_1_IF_NON_ZERO(igbinary_serialize32(igsd, n))
+		RETURN_1_IF_NON_ZERO(igbinary_serialize32(igsd, (uint32_t)n))
 	}
 
 	if (n == 0) {
@@ -2007,8 +2008,8 @@ inline static zend_string *igbinary_unserialize_chararray(struct igbinary_unseri
 /** Unserializes a PHP array. */
 inline static int igbinary_unserialize_array(struct igbinary_unserialize_data *igsd, enum igbinary_type t, zval *const z, int flags) {
 	/* WANT_REF means that z will be wrapped by an IS_REFERENCE */
-	size_t n;
-	size_t i;
+	uint32_t n;
+	uint32_t i;
 
 	zval v;
 	zval *vp;
@@ -2177,8 +2178,8 @@ inline static int igbinary_unserialize_array(struct igbinary_unserialize_data *i
 /** Unserializes the array of object properties and adds those to the object z. */
 inline static int igbinary_unserialize_object_properties(struct igbinary_unserialize_data *igsd, enum igbinary_type t, zval *const z) {
 	/* WANT_REF means that z will be wrapped by an IS_REFERENCE */
-	size_t n;
-	size_t i;
+	uint32_t n;
+	uint32_t i;
 
 	zval v;
 	zval *vp;
@@ -2310,7 +2311,8 @@ inline static int igbinary_unserialize_object_properties(struct igbinary_unseria
 			vp = zend_hash_update_ind(h, key_str, &v);
 		} else {
 			if (!did_extend) {
-				zend_long remaining_elements = n - i;
+				/* n is at least one, because we're looping from 0..n-1 */
+				uint32_t remaining_elements = n - i;
 				/* Copied from var_unserializer.re. Need to ensure that IGB_REF_VAL doesn't point to invalid data. */
 				/* Worst case: All remaining_elements of the added properties are dynamic. */
 				zend_hash_extend(h, zend_hash_num_elements(h) + remaining_elements, (h->u.flags & HASH_FLAG_PACKED));
