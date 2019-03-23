@@ -1,36 +1,18 @@
 language: php
 
-# When updating 7.3.0X, update the download URL in ci/install_php_custom.sh as well,
-# so that 32-bit testing will work.
-# PHP 5.3 is still supported in igbinary releases; it's just that travis can't/won't build php 5.3 in trusty.
 php:
   - master
+  - 7.4snapshot
   - 7.3
   - 7.2
   - 7.1
   - 7.0
-  - 5.6
-  - 5.5
-  - 5.4
 
-# For unsupported versions(5.4-5.5), run minimal tests to cover 32-bit, 64-bit, and clang
-# Exclude everything else.
 matrix:
   allow_failures:
   - php: master
+  - php: 7.4snapshot
   exclude:
-  - php: 5.4
-    env: CC=clang   CFLAGS="-g -O0"
-  - php: 5.4
-    env: CC=gcc-4.8 CFLAGS="-g"
-  - php: 5.4
-    env: CC=gcc-4.8 CXX=g++-4.8 USE_32BIT=1 PHP_CUSTOM=maintainer-zts PHP_CONFIGURE_ARGS='--disable-all --enable-maintainer-zts --enable-debug --enable-cgi --enable-session --enable-json'
-  - php: 5.5
-    env: CC=clang   CFLAGS="-g -O0"
-  - php: 5.5
-    env: CC=gcc-4.8 CFLAGS=""
-  - php: 5.5
-    env: CC=gcc-4.8 CXX=g++-4.8 USE_32BIT=1 PHP_CUSTOM=maintainer-zts PHP_CONFIGURE_ARGS='--disable-all --enable-maintainer-zts --enable-debug --enable-cgi --enable-session --enable-json'
   - php: 7.0
     env: CC=clang   CFLAGS="-g -O0"
   - php: 7.1
@@ -55,6 +37,15 @@ matrix:
     # even in tests that don't invoke igbinary (e.g. `LEAK Check for igbinary presence [tests/igbinary_001.phpt]`)
   - php: 7.3
     env: CC=gcc-4.8 CFLAGS=""
+  # Exclude clang, the version bundled with trusty is too old to support inline assembly used by php-src 7.4+?
+  - php: 7.4snapshot
+    env: CC=clang   CFLAGS="-O3" SKIP_VALGRIND=1
+  - php: 7.4snapshot
+    env: CC=clang   CFLAGS="-g -O0"
+  - php: 7.4snapshot
+    env: CC=gcc-4.8 CFLAGS=""
+  - php: 7.4snapshot
+    env: CC=gcc-4.8 CXX=g++-4.8 USE_32BIT=1 PHP_CUSTOM=maintainer-zts PHP_CONFIGURE_ARGS='--disable-all --enable-maintainer-zts --enable-debug --enable-cgi --enable-session --enable-json'
   - php: master
     env: CC=clang   CFLAGS="-O3" SKIP_VALGRIND=1
   - php: master
@@ -101,3 +92,4 @@ script:
 branches:
   only:
     - master
+    - v3

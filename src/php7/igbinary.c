@@ -27,7 +27,10 @@
 
 #include "ext/standard/php_incomplete_class.h"
 
-/* Note: there are no checks for APC (project from which APCU was forked) */
+#if PHP_VERSION_ID < 70400
+#define zend_get_properties_for(struc, purpose) Z_OBJPROP_P((struc))
+#endif
+
 #if defined(HAVE_APCU_SUPPORT)
 # include "ext/apcu/apc_serializer.h"
 #endif /* HAVE_APCU_SUPPORT */
@@ -380,9 +383,9 @@ PHP_MINFO_FUNCTION(igbinary) {
 	php_info_print_table_row(2, "igbinary support", "enabled");
 	php_info_print_table_row(2, "igbinary version", PHP_IGBINARY_VERSION);
 #if defined(HAVE_APCU_SUPPORT)
-	php_info_print_table_row(2, "igbinary APCU serializer ABI", APC_SERIALIZER_ABI);
+	php_info_print_table_row(2, "igbinary APCu serializer ABI", APC_SERIALIZER_ABI);
 #else
-	php_info_print_table_row(2, "igbinary APC serializer ABI", "no");
+	php_info_print_table_row(2, "igbinary APCu serializer ABI", "no");
 #endif
 #if HAVE_PHP_SESSION && !defined(COMPILE_DL_SESSION)
 	php_info_print_table_row(2, "igbinary session support", "yes");
@@ -579,6 +582,13 @@ IGBINARY_API int igbinary_unserialize(const uint8_t *buf, size_t buf_len, zval *
 		return 1;
 	}
 
+	if (igsd.buffer_ptr < igsd.buffer_end) {
+		// https://github.com/igbinary/igbinary/issues/64
+		zend_error(E_WARNING, "igbinary_unserialize: received more data to unserialize than expected");
+		igbinary_unserialize_data_deinit(&igsd);
+		return 1;
+	}
+
 	if (igbinary_finish_wakeup(&igsd)) {
 		igbinary_unserialize_data_deinit(&igsd);
 		return 1;
@@ -652,9 +662,6 @@ PS_SERIALIZER_ENCODE_FUNC(igbinary)
 	if (Z_ISREF_P(session_vars)) {
 		session_vars = Z_REFVAL_P(session_vars);
 	}
-	if (Z_TYPE_P(session_vars) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(session_vars)) == 0) {
-		return ZSTR_EMPTY_ALLOC();
-	}
 	if (igbinary_serialize_data_init(&igsd, false, NULL)) {
 		zend_error(E_WARNING, "igbinary_serialize: cannot init igsd");
 		return ZSTR_EMPTY_ALLOC();
@@ -666,7 +673,8 @@ PS_SERIALIZER_ENCODE_FUNC(igbinary)
 		return ZSTR_EMPTY_ALLOC();
 	}
 
-	/** We serialize the passed in array of session_var the same way we would serialize a regular array. */
+	/** We serialize the passed in array of session_var (including the empty array, for #231) */
+	/** the same way we would serialize a regular array. */
 	/** The corresponding PS_SERIALIZER_DECODE_FUNC will unserialize the array and individually add the session variables. */
 	if (igbinary_serialize_array(&igsd, session_vars, false, false) != 0) {
 		igbinary_serialize_data_deinit(&igsd, 1);
@@ -780,7 +788,7 @@ static int APC_UNSERIALIZER_NAME(igbinary) ( APC_UNSERIALIZER_ARGS ) {
 	}
 	/* Failed. free return value */
 	zval_ptr_dtor(value);
-	ZVAL_NULL(value); /* and replace the incomplete value with null just in case APCU uses it in the future */
+	ZVAL_NULL(value); /* and replace the incomplete value with null just in case APCu uses it in the future */
 	return 0;
 }
 /* }}} */
@@ -1089,7 +1097,7 @@ inline static int igbinary_serialize_array(struct igbinary_serialize_data *igsd,
 	ZVAL_DEREF(z);
 
 	/* hash */
-	h = object ? Z_OBJPROP_P(z) : HASH_OF(z);
+	h = object ? zend_get_properties_for(z, ZEND_PROP_PURPOSE_SERIALIZE) : HASH_OF(z);
 
 	/* hash size */
 	n = h ? zend_hash_num_elements(h) : 0;
@@ -1264,7 +1272,7 @@ inline static int igbinary_serialize_array_sleep(struct igbinary_serialize_data 
 		return 0;
 	}
 
-	object_properties = Z_OBJPROP_P(z);
+	object_properties = zend_get_properties_for(z, ZEND_PROP_PURPOSE_SERIALIZE);
 
 	ZEND_HASH_FOREACH_STR_KEY_VAL(h, key, d) {
 		/* skip magic member in incomplete classes */

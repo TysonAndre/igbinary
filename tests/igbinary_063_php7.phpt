@@ -5,7 +5,7 @@ Accessing unserialized numbers.
 if (!extension_loaded('igbinary')) {
     echo "skip no igbinary";
 }
-if (PHP_VERSION_ID >= 70200 || PHP_VERSION_ID < 70000) {
+if (PHP_VERSION_ID >= 70200) {
     echo "Skip php 7.1 or 7.0 required";
 }
 ?>

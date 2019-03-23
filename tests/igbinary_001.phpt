@@ -13,7 +13,7 @@ echo "igbinary extension is available\n";
  * to pass, differences between the output and the
  * expected text are interpreted as failure
  *
- * see php5/README.TESTING for further information on
+ * see TESTING.md for further information on
  * writing regression tests
  */
 ?>

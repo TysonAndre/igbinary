@@ -32,8 +32,7 @@ Features
 - Data portability between platforms (32/64bit, endianness)
 - Tested on Linux amd64, Linux ARM, Mac OSX x86, HP-UX PA-RISC and NetBSD sparc64
 - Hooks up to the APCu in-memory key-value store as a serialization handler.
-  (For older PHP releases, this also hooks up to APC opcode cache(APC 3.1.7+)
-- Compatible with PHP 5.2 &ndash; 5.6, 7.0 &ndash; 7.2
+- Compatible with 7.0 &ndash; 7.3 (The older igbinary [2.x releases](https://github.com/igbinary/igbinary/tree/v2) support 5.2 &ndash; 5.6, 7.0 &ndash; 7.3)
 
 Implementation details
 ----------------------
@@ -78,9 +77,7 @@ session.serialize_handler=igbinary
 igbinary.compact_strings=On
 
 ; If uncommented, use igbinary as the serializer of APCu
-; (For PHP 7, APCu 5.1.10 or newer is strongly recommended)
-; For older PHP versions, APC cache is also supported
-; (must be version 3.1.7 or newer)
+; (APCu 5.1.10 or newer is strongly recommended)
 ;apc.serializer=igbinary
 ```
 

@@ -1,10 +1,5 @@
 --TEST--
 __wakeup can modify properties without affecting other objects
---SKIPIF--
-<?php
-if (PHP_MAJOR_VERSION < 7) {
-	print "skip pre-existing bug in php5 releases, TODO fix";
-}
 --FILE--
 <?php
 

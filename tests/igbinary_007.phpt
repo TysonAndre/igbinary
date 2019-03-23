@@ -29,7 +29,7 @@ test('array(array(1, 2, 3), arr...', array(array(1, 2, 3), array(4, 5, 6), array
  * to pass, differences between the output and the
  * expected text are interpreted as failure
  *
- * see php5/README.TESTING for further information on
+ * see TESTING.md for further information on
  * writing regression tests
  */
 ?>

@@ -1,7 +1,32 @@
-2.0.8dev 2018-??-??
+3.0.1dev 2019-??-??
+=======
+
+3.0.0 2019-02-17
+=======
+
+* Identical to 3.0.0a2
+
+3.0.0a2 2019-02-13
+=======
+
+* Don't use empty string for serializing empty $_SESSION array, it breaks some save handlers. (Issue #231)
+  Continue treating the empty string as the empty $_SESSION array when unserializing.
+
+3.0.0a1 2019-02-08
+=======
+
+* This release line drops support for PHP5.
+* Drop support for APC (APC was only available for PHP5 - It is the predecessor of APCu)
+* Emit a warning and return null if igbinary_unserialize() is passed more data to unserialize than expected.
+* Fix compilation against PHP 7.4-dev. Igbinary does NOT yet properly serialize/unserialize all classes with PHP 7.4-dev's typed properties.
+* The serialization format is exactly the same as igbinary 2.x
+
+2.0.8 2018-10-20
 =======
 
 * Be more aggressive about deduplication when generating serialization of arrays in php 7.0+.
+* Define HAVE_IGBINARY on Unix/Linux. (previously defined only on Windows)
+* Update formatting/wording of documentation.
 
 2.0.7 2018-06-27
 =======

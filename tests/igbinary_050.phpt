@@ -20,7 +20,7 @@ $f = &$ig->cyclic->foo;
 $f = 'V';
 var_dump($ig);
 // Note: While the php7 unserializer consistently makes a distinction between refs to an object and non-refs,
-// the php5 serializer does not yet.
+// the php5 serializer does not.
 --EXPECTF--
 O:8:"stdClass":1:{s:6:"cyclic";O:8:"stdClass":2:{s:3:"foo";R:2;s:3:"bar";R:2;}}
 000000021708737464436c617373140111066379636c6963251a0014021103666f6f2522011103626172252201

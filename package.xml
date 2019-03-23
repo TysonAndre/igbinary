@@ -31,19 +31,19 @@
   <email>tysonandre775@hotmail.com</email>
   <active>yes</active>
  </lead>
- <date>2018-06-27</date>
+ <date>2019-02-17</date>
  <time>16:00:00</time>
  <version>
-  <release>2.0.8dev</release>
-  <api>1.1.2</api>
+  <release>3.0.0</release>
+  <api>1.2.0</api>
  </version>
  <stability>
-  <release>devel</release>
-  <api>devel</api>
+  <release>stable</release>
+  <api>stable</api>
  </stability>
  <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
  <notes>
-* Fix compiler warnings about format strings, for errors that should not occur during normal igbinary usage.
+* Identical to 3.0.0a2
  </notes>
  <contents>
   <dir name="/">
@@ -51,16 +51,6 @@
    <file name="config.w32" role="src" />
    <file name="igbinary.h" role="src" />
    <file name="php_igbinary.h" role="src" />
-   <file name="src/php5/hash.h" role="src" />
-   <file name="src/php5/hash_ptr.h" role="src" />
-   <file name="src/php5/hash_si.c" role="src" />
-   <file name="src/php5/hash_si_ptr.c" role="src" />
-   <file name="src/php5/igbinary.c" role="src" />
-   <file name="src/php5/igbinary.h" role="src" />
-   <file name="src/php5/igbinary_macros.h" role="src" />
-   <file name="src/php5/php_igbinary.h" role="src" />
-   <file name="src/php5/ig_win32.h" role="src" />
-   <file name="src/php5/apc_serializer.h" role="src" />
    <file name="src/php7/hash.h" role="src" />
    <file name="src/php7/hash_ptr.h" role="src" />
    <file name="src/php7/hash_si.c" role="src" />
@@ -114,17 +104,14 @@
     <file name="igbinary_029.phpt" role="test" />
     <file name="igbinary_030_php72.phpt" role="test" />
     <file name="igbinary_030_php7.phpt" role="test" />
-    <file name="igbinary_030.phpt" role="test" />
     <file name="igbinary_031.phpt" role="test" />
     <file name="igbinary_032.phpt" role="test" />
     <file name="igbinary_033.phpt" role="test" />
     <file name="igbinary_034.phpt" role="test" />
     <file name="igbinary_040.phpt" role="test" />
     <file name="igbinary_041.phpt" role="test" />
-    <file name="igbinary_042.phpt" role="test" />
     <file name="igbinary_043.phpt" role="test" />
     <file name="igbinary_044.phpt" role="test" />
-    <file name="igbinary_045.phpt" role="test" />
     <file name="igbinary_045b.phpt" role="test" />
     <file name="igbinary_045c.phpt" role="test" />
     <file name="igbinary_046.phpt" role="test" />
@@ -149,12 +136,10 @@
     <file name="igbinary_060.phpt" role="test" />
     <file name="igbinary_061.phpt" role="test" />
     <file name="igbinary_062.phpt" role="test" />
-    <file name="igbinary_063.phpt" role="test" />
     <file name="igbinary_063_php72.phpt" role="test" />
     <file name="igbinary_063_php7.phpt" role="test" />
     <file name="igbinary_064.phpt" role="test" />
     <file name="igbinary_065.phpt" role="test" />
-    <file name="igbinary_065_php5.phpt" role="test" />
     <file name="igbinary_066.phpt" role="test" />
     <file name="igbinary_067.phpt" role="test" />
     <file name="igbinary_068.phpt" role="test" />
@@ -168,7 +153,7 @@
  <dependencies>
   <required>
    <php>
-    <min>5.2.0</min>
+    <min>7.0.0</min>
    </php>
    <pearinstaller>
     <min>1.4.0b1</min>
@@ -178,6 +163,77 @@
  <providesextension>igbinary</providesextension>
  <extsrcrelease />
  <changelog>
+  <release>
+   <date>2019-02-17</date>
+   <time>16:00:00</time>
+   <version>
+    <release>3.0.0</release>
+    <api>1.2.0</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
+   <notes>
+  * Identical to 3.0.0a2
+   </notes>
+  </release>
+  <release>
+   <date>2019-02-13</date>
+   <time>16:00:00</time>
+   <version>
+    <release>3.0.0a2</release>
+    <api>1.2.0</api>
+   </version>
+   <stability>
+    <release>alpha</release>
+    <api>stable</api>
+   </stability>
+   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
+   <notes>
+* Don't use empty string for serializing empty $_SESSION array, it breaks some save handlers. (Issue #231)
+  Continue treating the empty string as the empty $_SESSION array when unserializing.
+   </notes>
+  </release>
+  <release>
+   <date>2019-02-09</date>
+   <time>16:00:00</time>
+   <version>
+    <release>3.0.0a1</release>
+    <api>1.2.0</api>
+   </version>
+   <stability>
+    <release>alpha</release>
+    <api>stable</api>
+   </stability>
+   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
+   <notes>
+* Drop support for PHP 5.
+* Drop support for APC (APC was only available for PHP5 - It is the predecessor of APCu)
+* Emit a warning and return null if igbinary_unserialize() is passed more data to unserialize than expected.
+* Fix compilation against PHP 7.4-dev. Igbinary does NOT yet properly serialize/unserialize all classes with PHP 7.4-dev's typed properties.
+* The serialization format is exactly the same as igbinary 2.x
+   </notes>
+  </release>
+  <release>
+   <date>2018-10-20</date>
+   <time>16:00:00</time>
+   <version>
+    <release>2.0.8</release>
+    <api>1.1.2</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <license uri="https://github.com/igbinary/igbinary/blob/master/COPYING">BSD-3-Clause</license>
+   <notes>
+* Be more aggressive about deduplication when generating serialization of arrays in php 7.0+.
+* Define HAVE_IGBINARY on Unix/Linux. (previously defined only on Windows)
+* Update formatting/wording of documentation.
+   </notes>
+  </release>
   <release>
    <date>2018-06-27</date>
    <time>16:00:00</time>

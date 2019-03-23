@@ -46,14 +46,20 @@ foreach ($datas as $data) {
 	}
 
 	// padded
-	$str .= "98398afa\000y21_ ";
-	$v = igbinary_unserialize($str);
-	if ($v !== $data && !(is_object($data) && $v == $data)) {
-		echo "padded should get original\n";
+	$str2 = $str . "98398afa\000y21_ ";
+	$v = igbinary_unserialize($str2);
+	if ($v !== NULL) {
+		echo "Should return null with padding\n";
 		var_dump($v);
-		echo "vs.\n";
-		var_dump($data);
+	}
+	$str3 = $str . "\x00";
+	$v = igbinary_unserialize($str3);
+	if ($v !== NULL) {
+		echo "Should return null with single byte of padding\n";
+		var_dump($v);
 	}
 }
+echo "Success!\n";
 ?>
 --EXPECT--
+Success!

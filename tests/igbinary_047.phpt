@@ -2,11 +2,6 @@
 Check for serialization handler, SessionHandlerInterface
 --SKIPIF--
 <?php
-// http://php.net/manual/en/class.sessionhandlerinterface.php (PHP 5 >= 5.4.0)
-if (version_compare(phpversion(), "5.4.0", "<")) {
-    exit("skip php version less than 5.4.x");
-}
-
 if (!extension_loaded('session')) {
     exit('skip session extension not loaded');
 }
@@ -20,8 +15,7 @@ $array = preg_grep('/^igbinary session support.*yes/', $array);
 if (!$array) {
     exit('skip igbinary session handler not available');
 }
-
-
+?>
 --FILE--
 <?php
 // https://github.com/igbinary/igbinary/issues/23
@@ -89,7 +83,7 @@ echo $output;
  * to pass, differences between the output and the
  * expected text are interpreted as failure
  *
- * see php5/README.TESTING for further information on
+ * see TESTING.md for further information on
  * writing regression tests
  */
 ?>

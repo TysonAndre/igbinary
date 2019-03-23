@@ -29,11 +29,10 @@ function test() {
 		return true;
 	}
 	if (is_string($reserialized) && strlen($reserialized) < strlen($serialized) && strncmp($reserialized, $serialized, 0) === 0) {
-		// TODO: Fix this in releases, after verifying that session and APCU don't have additional data such as null bytes appended.
-		// If there are unused bytes, then the code should assume that the provided data is corrupt, and return false.
 		return true;
 	}
 
+	// igbinary should not unserialize an object for invalid data - if it does, print the unexpected value.
 	echo bin2hex($serialized), "\n";
 	echo bin2hex($reserialized), "\n";
 	var_dump($unserialized);
@@ -41,11 +40,21 @@ function test() {
 	return false;
 }
 
+// Test that 100 deterministic random values don't unserialize as valid data
 mt_srand(0xface);
 for ($i = 0; $i < 100; ++$i) {
 	error_reporting(E_ERROR | E_PARSE);
 	if (!test()) break;
 }
-
+// Test that igbinary_unserialize warns if extra data is added and fails (suppressed in the above checks)
+error_reporting(E_ALL);
+echo "After testing 100 random values\n";
+$result = igbinary_unserialize(igbinary_serialize(true) . "\x00");
+// Should deliberately return null if extra data was seen
+var_dump($result);
 ?>
---EXPECT--
+--EXPECTF--
+After testing 100 random values
+
+Warning: igbinary_unserialize: received more data to unserialize than expected in %s on line 48
+NULL

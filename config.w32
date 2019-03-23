@@ -14,10 +14,6 @@ if (PHP_IGBINARY == "yes") {
       // If they aren't available in ext/apcu, expect them in ../pecl/apcu
       AC_DEFINE('HAVE_APCU_HEADERS_IN_PECL', 1, "Whether or not apcu headers exist only in pecl folder")
     }
-  } else if (is_php5 && CHECK_HEADER_ADD_INCLUDE("apc_serializer.h", "CFLAGS_IGBINARY", "..\\pecl\\apc;ext\\apc")) {
-	// Don't try ext/apc unless this is a php 5 build.
-	// For some reason, the header files still exist for pecl.php.net 7.0 builds.
-    AC_DEFINE('HAVE_APC_SUPPORT', 1, 'Whether to enable apc support')
   }
   var old_conf_dir = configure_module_dirname;
   var php_igbinary_src_files;
@@ -27,8 +23,7 @@ if (PHP_IGBINARY == "yes") {
   /* XXX tricky job here, override configure_module_dirname, define the basic extension,
      then set it back*/
   if (is_php5) {
-    subdir = "src\\php5"
-    php_igbinary_src_files = "igbinary.c hash_si.c hash_si_ptr.c"
+    ERROR("PHP 5 is not supported by igbinary 3 - Use igbinary 2.x");
   } else if (is_php7) {
     subdir = "src\\php7";
     php_igbinary_src_files = "igbinary.c hash_si.c hash_si_ptr.c"

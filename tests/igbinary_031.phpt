@@ -53,10 +53,8 @@ echo "a, a, c\n";
 try {
 	test(array($a, $a, $c));
 } catch (Exception $e) {
-	if (version_compare(phpversion(), "5.3.0", ">=")) {
-		if ($e->getPrevious()) {
-			$e = $e->getPrevious();
-		}
+	if ($e->getPrevious()) {
+		$e = $e->getPrevious();
 	}
 
 	echo $e->getMessage(), "\n";
@@ -67,10 +65,8 @@ echo "b, b, d\n";
 try {
 	test(array($b, $b, $d));
 } catch (Exception $e) {
-	if (version_compare(phpversion(), "5.3.0", ">=")) {
-		if ($e->getPrevious()) {
-			$e = $e->getPrevious();
-		}
+	if ($e->getPrevious()) {
+		$e = $e->getPrevious();
 	}
 
 	echo $e->getMessage(), "\n";

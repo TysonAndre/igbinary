@@ -1,9 +1,5 @@
 --TEST--
 Should not call __destruct if __wakeup throws an exception (in arrays)
---SKIPIF--
-<?php
-if (PHP_VERSION < 7) { print "skip not able to set gc flags"; }
-?>
 --INI--
 igbinary.compact_strings = On
 --FILE--

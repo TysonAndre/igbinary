@@ -12,16 +12,9 @@ if (!extension_loaded('apcu')) {
 }
 
 $ext = new ReflectionExtension('apcu');
-if (version_compare($ext->getVersion(), '4.0.2') < 0) {
-	echo "skip require APCu version 4.0.2 or above";
+if (version_compare($ext->getVersion(), '5.1.6') < 0) {
+	echo "skip require APCu version 5.1.6 or above";
 	return;
-}
-
-if (PHP_MAJOR_VERSION >= 7) {
-	if (version_compare($ext->getVersion(), '5.1.6') < 0) {
-		echo "skip require APCu version 5.1.6 or above";
-		return;
-	}
 }
 ?>
 --FILE--

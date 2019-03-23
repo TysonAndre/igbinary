@@ -59,20 +59,12 @@ session_start();
 // save an empty session
 session_write_close();
 
+// See https://github.com/igbinary/igbinary/issues/231
+// - Redis expects a non-empty string to be serialized
+// - When igbinary serializes data, many applications expect it to begin with \x00\x00\x00\x02.
+// - \x14\x00 represents an array(0x14) of size 0 (0x00)
 echo $output;
-
-/*
- * you can add regression tests for your extension here
- *
- * the output of your test code has to be equal to the
- * text in the --EXPECT-- section below for the tests
- * to pass, differences between the output and the
- * expected text are interpreted as failure
- *
- * see php5/README.TESTING for further information on
- * writing regression tests
- */
 ?>
 --EXPECT--
 read(abcdef10231512dfaz_12311)
-write(abcdef10231512dfaz_12311): data:()
+write(abcdef10231512dfaz_12311): data:(000000021400)

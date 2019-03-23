@@ -5,7 +5,7 @@ Unserialize invalid data
 if(!extension_loaded('igbinary')) {
 	echo "skip no igbinary";
 }
-if (PHP_VERSION_ID >= 70200 || PHP_VERSION_ID < 70000) {
+if (PHP_VERSION_ID >= 70200) {
     echo "Skip php 7.1 or 7.0 required\n";
 }
 ?>
@@ -47,32 +47,20 @@ foreach ($datas as $data) {
 	}
 
 	// padded
-	$str .= "98398afa\000y21_ ";
-	$v = igbinary_unserialize($str);
-	if ($v !== $data && !(is_object($data) && $v == $data)) {
-		echo "padded should get original\n";
+	$str2 = $str . "98398afa\000y21_ ";
+	$v = igbinary_unserialize($str2);
+	if ($v !== NULL) {
+		echo "Should return null with padding\n";
 		var_dump($v);
-		echo "vs.\n";
-		var_dump($data);
+	}
+	$str3 = $str . "\x00";
+	$v = igbinary_unserialize($str3);
+	if ($v !== NULL) {
+		echo "Should return null with single byte of padding\n";
+		var_dump($v);
 	}
 }
+echo "Success!\n";
 ?>
 --EXPECT--
-padded should get original
-object(stdClass)#3 (3) {
-  ["0"]=>
-  int(1)
-  ["1"]=>
-  int(2)
-  ["2"]=>
-  int(3)
-}
-vs.
-object(stdClass)#2 (3) {
-  [0]=>
-  int(1)
-  [1]=>
-  int(2)
-  [2]=>
-  int(3)
-}
+Success!

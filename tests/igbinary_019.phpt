@@ -40,7 +40,7 @@ test('autoload', '0000000217034f626a140211016106011101620602', false);
  * to pass, differences between the output and the
  * expected text are interpreted as failure
  *
- * see php5/README.TESTING for further information on
+ * see TESTING.md for further information on
  * writing regression tests
  */
 ?>

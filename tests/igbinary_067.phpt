@@ -1,5 +1,9 @@
 --TEST--
 Test serializing multiple reference groups to the same empty array
+--SKIPIF--
+<?php
+if (!function_exists('json_encode')) { echo "skip requires json_encode\n"; }
+?>
 --FILE--
 <?php
 

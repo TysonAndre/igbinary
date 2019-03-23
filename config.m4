@@ -22,35 +22,29 @@ if test "$PHP_IGBINARY" != "no"; then
 
   AC_MSG_CHECKING(PHP version)
 
+  PHP_IGBINARY_SRC_FILES="src/php7/igbinary.c src/php7/hash_si.c src/php7/hash_si_ptr.c"
+  if test -n "$phpincludedir" -a -d "$phpincludedir"; then
+    IGBINARY_PHPINCLUDEDIR=$phpincludedir
+  else
+    IGBINARY_PHPINCLUDEDIR=$abs_srcdir
+  fi
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-  #include <$phpincludedir/main/php_version.h>
+  #include <$IGBINARY_PHPINCLUDEDIR/main/php_version.h>
   ]], [[
-#if PHP_MAJOR_VERSION > 5
-#error PHP > 5
+#if PHP_MAJOR_VERSION < 7
+#error PHP < 7
 #endif
   ]])],[
-  subdir=src/php5
-  PHP_IGBINARY_SRC_FILES="$subdir/igbinary.c $subdir/hash_si.c $subdir/hash_si_ptr.c"
-  AC_MSG_RESULT([PHP 5])
-  ],[
-  subdir=src/php7
-  PHP_IGBINARY_SRC_FILES="$subdir/igbinary.c $subdir/hash_si.c $subdir/hash_si_ptr.c"
   AC_MSG_RESULT([PHP 7])
+  ],[
+  AC_MSG_ERROR([PHP 5 is not supported by igbinary 3. Use igbinary 2 instead for PHP5 support.])
   ])
 
-  AC_MSG_CHECKING([for APC/APCU includes])
-  if test -f "$phpincludedir/ext/apcu/apc_serializer.h"; then
-    apc_inc_path="$phpincludedir"
-    AC_MSG_RESULT([APCU in $apc_inc_path])
-    AC_DEFINE(HAVE_APCU_SUPPORT,1,[Whether to enable apcu support])
-  elif test "$subdir" == src/php5 && test -f "$phpincludedir/ext/apc/apc_serializer.h"; then
-    apc_inc_path="$phpincludedir"
-    AC_MSG_RESULT([APC in $apc_inc_path])
-    AC_DEFINE(HAVE_APC_SUPPORT,1,[Whether to enable apc support])
-  elif test "$subdir" == src/php5 && test -f "${srcdir}/$subdir/apc_serializer.h"; then
-    AC_MSG_RESULT([apc_serializer.h bundled])
-    AC_DEFINE(HAVE_APC_SUPPORT,1,[Whether to enable apc support])
-    AC_DEFINE(USE_BUNDLED_APC,1,[Whether to use bundled apc includes])
+  AC_MSG_CHECKING([for APCu includes])
+  if test -f "$IGBINARY_PHPINCLUDEDIR/ext/apcu/apc_serializer.h"; then
+    apc_inc_path="$IGBINARY_PHPINCLUDEDIR"
+    AC_MSG_RESULT([APCu in $apc_inc_path])
+    AC_DEFINE(HAVE_APCU_SUPPORT,1,[Whether to enable APCu support])
   else
     AC_MSG_RESULT([not found])
   fi
@@ -79,10 +73,10 @@ if test "$PHP_IGBINARY" != "no"; then
   fi
 
   PHP_ADD_MAKEFILE_FRAGMENT(Makefile.bench)
-  PHP_INSTALL_HEADERS([ext/igbinary], [igbinary.h $subdir/igbinary.h php_igbinary.h $subdir/php_igbinary.h])
+  PHP_INSTALL_HEADERS([ext/igbinary], [igbinary.h src/php7/igbinary.h php_igbinary.h src/php7/php_igbinary.h])
   PHP_NEW_EXTENSION(igbinary, $PHP_IGBINARY_SRC_FILES, $ext_shared,, $PHP_IGBINARY_CFLAGS)
   PHP_ADD_EXTENSION_DEP(igbinary, session, true)
   AC_DEFINE(HAVE_IGBINARY, 1, [Have igbinary support])
-  PHP_ADD_BUILD_DIR($abs_builddir/$subdir, 1)
+  PHP_ADD_BUILD_DIR($abs_builddir/src/php7, 1)
   PHP_SUBST(IGBINARY_SHARED_LIBADD)
 fi

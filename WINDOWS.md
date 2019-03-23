@@ -30,8 +30,6 @@ Installing Visual Studio
 
    At the time of writing, that was [Visual Studio Community Edition 2015](https://visualstudio.microsoft.com/vs/older-downloads/) for PHP7.0 - 7.2,
    and [Visual Studio Community Edition 2017](https://www.visualstudio.com/products/visual-studio-community-vs) for PHP 7.2+
-
-   Visual Studio 2015 **is not able to compile php 5**. Install Visual Studio 2012 if building php 5.5 or 5.6. Install Visual Studio 2008 if installing php 5.4.
 2. Install Visual Studio 2015. (Use custom installation, make sure that all C++ features are enabled)
 
 Downloading PHP
@@ -105,7 +103,7 @@ Similar to the above instructions.
 4. Extract or clone the extension source code to the pecl directory
 
    - if cloning, clone to a subdirectory, e.g. C:\php-sdk\phpdev\vc11\x86\pecl\igbinary
-   - source code archive should already contain a subdirectory with a name like igbinary-2.0.5. That should be renamed to igbinary.
+   - source code archive should already contain a subdirectory with a name like igbinary-2.0.8. That should be renamed to igbinary.
 5. Open a command prompt, run the setvars script, and enter your PHP source directory (not the extension directory)
 6. Rebuild the configure script by running:
 

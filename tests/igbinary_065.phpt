@@ -1,11 +1,5 @@
 --TEST--
 Don't emit zval has unknown type 0 (IS_UNDEF)
---SKIPIF--
-<?php
-if (PHP_MAJOR_VERSION < 7) {
-	exit('skip a separate test case tests php5');
-}
-?>
 --FILE--
 <?php
 

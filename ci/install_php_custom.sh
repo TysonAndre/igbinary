@@ -2,7 +2,7 @@
 
 # Required env variables:
 #  PHP_CONFIGURE_ARGS
-#  PHP_CUSTOM_VERSION (E.g. 7.1.7)
+#  PHP_CUSTOM_VERSION (E.g. 7.1.26)
 #  PHP_INSTALL_DIR (path to installation directory)
 
 # optional env vars:
@@ -30,18 +30,10 @@ if [ "x${TRAVIS:-0}" != "x" ]; then
     rm -rf $HOME/travis_cache/
 fi
 
-if [ "$PHP_CUSTOM_NORMAL_VERSION" == "7.3.0" ] ; then
-    PHP_CUSTOM_VERSION=7.3.0RC3
-    PHP_FOLDER="php-$PHP_CUSTOM_VERSION"
-
-    PHP_TAR_FILE="$PHP_FOLDER.tar.bz2"
-    curl --verbose https://downloads.php.net/~cmb/$PHP_TAR_FILE -o $PHP_TAR_FILE
-else
-    PHP_FOLDER="php-$PHP_CUSTOM_VERSION"
-    # Otherwise, put a minimal installation inside of the cache.
-    PHP_TAR_FILE="$PHP_FOLDER.tar.bz2"
-    curl --verbose https://secure.php.net/distributions/$PHP_TAR_FILE -o $PHP_TAR_FILE
-fi
+PHP_FOLDER="php-$PHP_CUSTOM_VERSION"
+# Otherwise, put a minimal installation inside of the cache.
+PHP_TAR_FILE="$PHP_FOLDER.tar.bz2"
+curl --verbose https://secure.php.net/distributions/$PHP_TAR_FILE -o $PHP_TAR_FILE
 
 tar xjf $PHP_TAR_FILE
 

@@ -5,8 +5,8 @@ Test serializing and unserializing many duplicate strings
 
 function main() {
 	$arr = array();
-	// Just more than 2 ** 16 (`2**16` is a parse error in php 5.5)
-	$n = (1 << 16) + 100;
+	// Just more than 2 ** 16
+	$n = (2 ** 16) + 100;
 	for ($i = 0; $i < $n; $i++) {
 		$s = "$i";
 		$arr[] = $s;

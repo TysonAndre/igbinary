@@ -8,8 +8,6 @@ Nested objects cause segfault, php bug #54662
  * Proof of concept, segmentation fault (spl_array.c/igbinary.c)
  * when using nested objects.
  *
- * PHP 5.3.6, Igbinary 1.x
- *
  * @author Aleksey Korzun
  */
 

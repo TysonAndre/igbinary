@@ -2,11 +2,8 @@
 Check for reference serialization (Original example, not using var_dump)
 --SKIPIF--
 <?php
-if(!extension_loaded('igbinary')) {
+if (!extension_loaded('igbinary')) {
 	echo "skip no igbinary";
-}
-if(PHP_MAJOR_VERSION < 7) {
-	echo "skip broken in php 5, and an existing bug";
 }
 --INI--
 pcre.jit=0

@@ -26,9 +26,6 @@ test('null', null);
  * text in the --EXPECT-- section below for the tests
  * to pass, differences between the output and the
  * expected text are interpreted as failure
- *
- * see php5/README.TESTING for further information on
- * writing regression tests
  */
 ?>
 --EXPECT--

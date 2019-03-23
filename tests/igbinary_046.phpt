@@ -1,8 +1,5 @@
 --TEST--
 Correctly unserialize scalar refs.
---SKIPIF--
-<?php
-if (PHP_MAJOR_VERSION < 7) { print "skip not implemented yet"; }
 --INI--
 igbinary.compact_strings = On
 --FILE--
