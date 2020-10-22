@@ -1,0 +1,27 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- script: |
+    phpize
+    # Replace run-tests.php with a patched version (from php 7.4's) that supports parallel builds.
+    cp ci/run-tests-parallel.php run-tests.php
+    ./configure --enable-igbinary
+    make
+  displayName: 'Build igbinary'
+  
+- script: |
+    REPORT_EXIT_STATUS=1 NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff -j$(nproc)" make test
+    # For most travis builds, re-run `make test` with valgrind.
+    if [ "x$SKIP_VALGRIND" = "x" ]; then export TEST_PHP_ARGS="-m --show-diff -j2"; REPORT_EXIT_STATUS=1 NO_INTERACTION=1 make test; fi
+    # Print a summary of any memory leaks
+    shopt -s nullglob; head -n 999 tests/*.mem < /dev/null
+  displayName: 'Test igbinary'
