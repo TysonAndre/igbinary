@@ -6,22 +6,34 @@
 trigger:
 - master
 
-pool:
-  vmImage: 'ubuntu-latest'
-
-steps:
-- script: |
-    phpize
-    # Replace run-tests.php with a patched version (from php 7.4's) that supports parallel builds.
-    cp ci/run-tests-parallel.php run-tests.php
-    ./configure --enable-igbinary
-    make
-  displayName: 'Build igbinary'
-  
-- script: |
-    REPORT_EXIT_STATUS=1 NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff -j$(nproc)" make test
-    # For most travis builds, re-run `make test` with valgrind.
-    if [ "x$SKIP_VALGRIND" = "x" ]; then export TEST_PHP_ARGS="-m --show-diff -j2"; REPORT_EXIT_STATUS=1 NO_INTERACTION=1 make test; fi
-    # Print a summary of any memory leaks
-    shopt -s nullglob; head -n 999 tests/*.mem < /dev/null
-  displayName: 'Test igbinary'
+jobs:
+  - template: .azure/job.yml
+    parameters:
+      configurationName: PHP_70_NTS
+      phpVersion: 7.0
+      vmImage: 'ubuntu-16.04'
+  - template: .azure/job.yml
+    parameters:
+      configurationName: PHP_71_NTS
+      phpVersion: 7.1
+      vmImage: 'ubuntu-16.04'
+  - template: .azure/job.yml
+    parameters:
+      configurationName: PHP_72_NTS
+      phpVersion: 7.2
+      vmImage: 'ubuntu-16.04'
+  - template: .azure/job.yml
+    parameters:
+      configurationName: PHP_73_NTS
+      phpVersion: 7.3
+      vmImage: 'ubuntu-18.04'
+  - template: .azure/job.yml
+    parameters:
+      configurationName: PHP_74_NTS
+      phpVersion: 7.4
+      vmImage: 'ubuntu-20.04'
+# - template: .azure/job.yml
+#   parameters:
+#     configurationName: PHP_80_NTS
+#     phpVersion: 8.0
+#     vmImage: 'ubuntu-20.04'
