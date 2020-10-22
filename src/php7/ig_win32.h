@@ -2,10 +2,11 @@
 #define _IG_WIN32_H
 
 #if PHP_WIN32
-# include "win32/php_stdint.h"
 # if defined(_MSC_VER) && _MSC_VER >= 1800
 #  include <stdbool.h>
+#  include <stdint.h>
 # else
+#  include "win32/php_stdint.h"
 #  ifndef inline
 #  define inline __inline
 #  endif

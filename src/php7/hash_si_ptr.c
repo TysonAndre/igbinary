@@ -9,11 +9,7 @@
   +----------------------------------------------------------------------+
 */
 
-#ifdef PHP_WIN32
-# include "win32/php_stdint.h"
-#else
-# include <stdint.h>
-#endif
+#include <stdint.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -65,12 +61,11 @@ int hash_si_ptr_init(struct hash_si_ptr *h, size_t size) {
 
 	h->size = size;
 	h->used = 0;
-	h->data = (struct hash_si_ptr_pair *)malloc(sizeof(struct hash_si_ptr_pair) * size);
+	/* Set everything to 0. sets keys to HASH_PTR_KEY_INVALID. */
+	h->data = (struct hash_si_ptr_pair *)ecalloc(size, sizeof(struct hash_si_ptr_pair));
 	if (h->data == NULL) {
 		return 1;
 	}
-
-	memset(h->data, 0, sizeof(struct hash_si_ptr_pair) * size); /* Set everything to 0. sets keys to HASH_PTR_KEY_INVALID. */
 
 	return 0;
 }
@@ -81,64 +76,54 @@ int hash_si_ptr_init(struct hash_si_ptr *h, size_t size) {
  * @param h Pointer to the hash map (hash_si_ptr struct) to free internal data structures of
  */
 void hash_si_ptr_deinit(struct hash_si_ptr *h) {
-	free(h->data);
+	efree(h->data);
 	h->data = NULL;
 
 	h->size = 0;
 	h->used = 0;
 }
 /* }}} */
-/* {{{ _hash_si_ptr_find */
-/** Returns index of key, or where it should be.
- * @param h Pointer to hash_si_ptr struct.
- * @param key Pointer to key.
- * @return index.
- */
-inline static uint32_t _hash_si_ptr_find(struct hash_si_ptr *h, const zend_uintptr_t key) {
-	uint32_t hv;
-	size_t size;
-
-	assert(h != NULL);
-
-	size = h->size;
-	hv = inline_hash_of_address(key) & (h->size - 1);
-
-	while (size > 0 &&
-		h->data[hv].key != HASH_PTR_KEY_INVALID &&
-		h->data[hv].key != key) {
-		/* linear prob */
-		hv = (hv + 1) & (h->size - 1);
-		size--;
-	}
-
-	return hv;
-}
-/* }}} */
-/* }}} */
 /* {{{ hash_si_ptr_rehash */
 /** Rehash/resize hash_si_ptr.
  * @param h Pointer to hash_si_ptr struct.
  */
 inline static void hash_si_ptr_rehash(struct hash_si_ptr *h) {
-	uint32_t hv;
 	size_t i;
-	struct hash_si_ptr newh;
+	size_t old_size;
+	size_t size;
+	size_t mask;
+	struct hash_si_ptr_pair *old_data;
+	struct hash_si_ptr_pair *new_data;
 
-	assert(h != NULL);
+	ZEND_ASSERT(h != NULL);
 
-	hash_si_ptr_init(&newh, h->size * 2);
+	/* Allocate a table with double the capacity (the next power of 2). */
+	old_size = h->size;
+	size = old_size * 2;
+	mask = size - 1;
+	old_data = h->data;
+	new_data = (struct hash_si_ptr_pair *)ecalloc(size, sizeof(struct hash_si_ptr_pair));
 
-	for (i = 0; i < h->size; i++) {
-		if (h->data[i].key != HASH_PTR_KEY_INVALID) {
-			hv = _hash_si_ptr_find(&newh, h->data[i].key);
-			newh.data[hv].key = h->data[i].key;
-			newh.data[hv].value = h->data[i].value;
+	h->size = size;
+	h->data = new_data;
+
+	/* Copy old entries to new entries */
+	for (i = 0; i < old_size; i++) {
+		if (old_data[i].key != HASH_PTR_KEY_INVALID) {
+			uint32_t hv = inline_hash_of_address(old_data[i].key) & mask;
+
+			/* Do linear probing for the next free slot. */
+			while (new_data[hv].key != HASH_PTR_KEY_INVALID) {
+				ZEND_ASSERT(new_data[hv].key != old_data[i].key);
+				hv = (hv + 1) & mask;
+			}
+
+			new_data[hv] = old_data[i];
 		}
 	}
 
-	free(h->data);
-	h->data = newh.data;
-	h->size *= 2;
+	/* Free old entries */
+	efree(old_data);
 }
 /* }}} */
 /* {{{ hash_si_ptr_find_or_insert */
@@ -149,22 +134,34 @@ inline static void hash_si_ptr_rehash(struct hash_si_ptr *h) {
  * @return the old value, or SIZE_MAX if the key is brand new.
  */
 size_t hash_si_ptr_find_or_insert(struct hash_si_ptr *h, const zend_uintptr_t key, uint32_t value) {
+	size_t size;
+	size_t mask;
 	uint32_t hv;
 
-	hv = _hash_si_ptr_find(h, key);
+	ZEND_ASSERT(h != NULL);
 
-	if (h->data[hv].key == HASH_PTR_KEY_INVALID) {
-		h->data[hv].key = key;
-		h->data[hv].value = value;
-		h->used++;
+	size = h->size;
+	mask = size - 1;
+	hv = inline_hash_of_address(key) & mask;
 
-		/* The size increased, so check if we need to expand the map */
-		if (h->size / 4 * 3 < h->used) {
-			hash_si_ptr_rehash(h);
+	while (1) {
+		if (h->data[hv].key == HASH_PTR_KEY_INVALID) {
+			/* This is a brand new key */
+			h->data[hv].key = key;
+			h->data[hv].value = value;
+			h->used++;
+
+			/* The size increased, so check if we need to expand the map */
+			if ((h->size >> 1) < h->used) {
+				hash_si_ptr_rehash(h);
+			}
+			return SIZE_MAX;
+		} else if (h->data[hv].key == key) {
+			/* This already exists in the hash map */
+			return h->data[hv].value;
 		}
-		return SIZE_MAX;
-	} else {
-		return h->data[hv].value;
+		/* linear prob */
+		hv = (hv + 1) & mask;
 	}
 }
 /* }}} */

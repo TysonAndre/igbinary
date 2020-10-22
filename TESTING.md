@@ -31,3 +31,7 @@ cd modules
 # replace this example path with the actual path to apcu.so for the php binary
 ln -nsf /opt/lib/php/extensions/no-debug-non-zts-20121212/apcu.so
 ```
+
+### Code Coverage
+
+See [`CODE_COVERAGE.md`](./CODE_COVERAGE.md)

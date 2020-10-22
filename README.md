@@ -28,11 +28,12 @@ Features
   float, string, array and object.
 - `__autoload` & `unserialize_callback_func`
 - `__sleep` & `__wakeup`
+- `__serialize` & `__unserialize` (only used in php 7.4+)
 - Serializable -interface
 - Data portability between platforms (32/64bit, endianness)
 - Tested on Linux amd64, Linux ARM, Mac OSX x86, HP-UX PA-RISC and NetBSD sparc64
 - Hooks up to the APCu in-memory key-value store as a serialization handler.
-- Compatible with 7.0 &ndash; 7.3 (The older igbinary [2.x releases](https://github.com/igbinary/igbinary/tree/v2) support 5.2 &ndash; 5.6, 7.0 &ndash; 7.3)
+- Compatible with 7.0 &ndash; 7.4 (The older igbinary [2.x releases](https://github.com/igbinary/igbinary/tree/v2) support 5.2 &ndash; 5.6, 7.0 &ndash; 7.3)
 
 Implementation details
 ----------------------
@@ -126,7 +127,7 @@ Bugs & Contributions
 --------------------
 
 Mailing list for bug reports and other development discussion can be found
-at http://groups.google.com/group/igbinary
+at http://groups.google.com/group/igbinary (no longer used)
 
 File bug reports at
 https://github.com/igbinary/igbinary/issues
@@ -135,6 +136,8 @@ The preferred way to contribute is with pull requests.
 Feel free to fork this at http://github.com/igbinary/igbinary
 
 See [TESTING.md](./TESTING.md) for advice for testing patches.
+
+See [TECH\_NOTES.md](./TECH_NOTES.md) for information about how igbinary is implemented
 
 Utilizing in other extensions
 -----------------------------

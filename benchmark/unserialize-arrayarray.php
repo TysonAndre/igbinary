@@ -4,7 +4,7 @@
 
 require_once 'bench.php';
 
-$b = new Bench('serialize-string-array');
+$b = new Bench('unserialize-arrayarray');
 
 srand(13333);
 $data = [];

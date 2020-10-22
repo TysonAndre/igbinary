@@ -5,6 +5,9 @@ Check for reference serialization (Original example, not using var_dump)
 if (!extension_loaded('igbinary')) {
 	echo "skip no igbinary";
 }
+if (PHP_MAJOR_VERSION > 7) {
+	echo "skip requires php 7.x\n";
+}
 --INI--
 pcre.jit=0
 --FILE--

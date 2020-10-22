@@ -43,12 +43,10 @@ int hash_si_init(struct hash_si *h, uint32_t size) {
 
 	h->mask = size - 1;
 	h->used = 0;
-	h->data = (struct hash_si_pair *)emalloc(sizeof(struct hash_si_pair) * size);
+	h->data = (struct hash_si_pair *)ecalloc(size, sizeof(struct hash_si_pair));
 	if (h->data == NULL) {
 		return 1;
 	}
-
-	memset(h->data, 0, sizeof(struct hash_si_pair) * size);
 
 	return 0;
 }
@@ -69,65 +67,17 @@ void hash_si_deinit(struct hash_si *h) {
 	h->used = 0;
 }
 /* }}} */
-/* {{{ _hash_si_find */
-/** Returns index of key, or where it should be.
- * @param h Pointer to hash_si struct.
- * @param key_zstr Pointer to key. (Will initialize ZSTR_H(key_zstr) if not already initialized)
- * @return index.
- */
-inline static struct hash_si_pair *_hash_si_find(const struct hash_si *h, const zend_string *key_zstr, const uint32_t key_hash) {
-	size_t mask;
-	struct hash_si_pair *it;
-	const struct hash_si_pair *last_element;
-	uint32_t increment;
-	uint32_t elem_key_hash;
-
-	assert(h != NULL);
-
-	mask = h->mask;
-	it = &(h->data[key_hash & mask]);
-
-	elem_key_hash = it->key_hash;
-	if (elem_key_hash == 0) {
-		/* This slot is empty - PHP guarantees hashes are non-zero */
-		return it;
+/* {{{ get_key_hash */
+inline static uint32_t get_key_hash(zend_string *key_zstr) {
+	uint32_t key_hash = ZSTR_HASH(key_zstr);
+#if SIZEOF_ZEND_LONG > 4
+	if (UNEXPECTED(key_hash == 0)) {
+		/* A key_hash of uint32_t(0) would be treated like a gap when inserted. Change the hash used to 1 instead. */
+		/* ZSTR_HASH is non-zero, but the lower bits can be 0 */
+		return 1;
 	}
-	if (key_hash == elem_key_hash) {
-		const zend_string *elem_key_zstr = it->key_zstr;
-		if (key_zstr == elem_key_zstr || (
-					ZSTR_LEN(key_zstr) == ZSTR_LEN(elem_key_zstr) &&
-					EXPECTED(!memcmp(ZSTR_VAL(key_zstr), ZSTR_VAL(elem_key_zstr), ZSTR_LEN(elem_key_zstr))))) {
-			/* We found an identical key. */
-			return it;
-		}
-	}
-
-	increment = ((key_hash >> 16) & 6) | 1; /* An odd number < size to increment by (1, 3, 5, or 7). Avoid clumping. */
-	last_element = h->data + mask;
-
-	/* Continue scanning, we'll reach an empty element eventually (odd number increment over a hash table of size (2^n) will traverse the entire map). */
-	while (1) {
-		it += increment;
-		if (it > last_element) {
-			it -= (mask + 1);
-		}
-
-		elem_key_hash = it->key_hash;
-		if (elem_key_hash == 0) {
-			/* This slot is empty - PHP guarantees hashes are non-zero */
-			return it;
-		}
-		if (key_hash == elem_key_hash) {
-			const zend_string *elem_key_zstr = it->key_zstr;
-			if (EXPECTED(key_zstr == elem_key_zstr || (
-		                ZSTR_LEN(key_zstr) == ZSTR_LEN(elem_key_zstr) &&
-		                EXPECTED(!memcmp(ZSTR_VAL(key_zstr), ZSTR_VAL(elem_key_zstr), ZSTR_LEN(elem_key_zstr)))))) {
-				/* We found an identical key. */
-				return it;
-			}
-		}
-		/* linear probing by increment if we found a different key */
-	}
+#endif
+	return key_hash;
 }
 /* }}} */
 /* {{{ hash_si_rehash */
@@ -136,34 +86,41 @@ inline static struct hash_si_pair *_hash_si_find(const struct hash_si *h, const 
  */
 inline static void hash_si_rehash(struct hash_si *h) {
 	size_t i;
-	size_t size;
-	struct hash_si newh;
-	struct hash_si_pair *data;
+	size_t old_size;
+	size_t new_size;
+	size_t new_mask;
+	struct hash_si_pair *old_data;
 	struct hash_si_pair *new_data;
 
-	assert(h != NULL);
-	size = h->mask + 1;
+	/* Allocate a table with double the capacity (the next power of 2). */
+	ZEND_ASSERT(h != NULL);
+	old_size = h->mask + 1;
+	new_size = old_size * 2;
+	new_mask = new_size - 1;
 
-	hash_si_init(&newh, size * 2);
-	data = h->data;
-	new_data = newh.data;
+	old_data = h->data;
+	new_data = (struct hash_si_pair *)ecalloc(new_size, sizeof(struct hash_si_pair));
+	h->data = new_data;
+	h->mask = new_mask;
 
-	for (i = 0; i < size; i++) {
-		const struct hash_si_pair *old_pair = &data[i];
-		const zend_string *key_zstr = old_pair->key_zstr;
-		if (key_zstr != NULL) {
+	/* Copy old entries to new entries */
+	for (i = 0; i < old_size; i++) {
+		const struct hash_si_pair *old_pair = &old_data[i];
+		if (old_pair->key_zstr != NULL) {
+			uint32_t hv = old_pair->key_hash & new_mask;
 			/* We already computed the hash, avoid recomputing it. */
-			struct hash_si_pair *new_data_entry = _hash_si_find((const struct hash_si *)&newh, key_zstr, old_pair->key_hash);
-			*new_data_entry = *old_pair;
+			/* Do linear probing for the next free slot. */
+			while (new_data[hv].key_hash != 0) {
+				hv = (hv + 1) & new_mask;
+			}
+			new_data[hv] = old_data[i];
 		}
 	}
 
-	efree(h->data);
-	h->data = new_data;
-	h->mask = size * 2 - 1;
+	/* Free old entries */
+	efree(old_data);
 }
 /* }}} */
-/* {{{ hash_si_find_or_insert */
 /**
  * If the string key already exists in the map, return the associated value.
  * If it doesn't exist, indicate that to the caller.
@@ -171,29 +128,41 @@ inline static void hash_si_rehash(struct hash_si *h) {
 struct hash_si_result hash_si_find_or_insert(struct hash_si *h, zend_string *key_zstr, uint32_t value) {
 	struct hash_si_result result;
 	struct hash_si_pair *pair;
-	uint32_t key_hash = ZSTR_HASH(key_zstr);
+	struct hash_si_pair *data;
+	uint32_t key_hash = get_key_hash(key_zstr);
+	size_t mask;
+	uint32_t hv;
 
-	pair = _hash_si_find(h, key_zstr, key_hash);
+	ZEND_ASSERT(h != NULL);
 
-	if (pair->key_zstr == NULL) {
-		zend_string_addref(key_zstr);
+	mask = h->mask;
+	hv = key_hash & mask;
+	data = h->data;
 
-		/* Having already computed the hash in the zend_string, insert that into the hash table */
-		pair->key_zstr = key_zstr;
-		pair->key_hash = key_hash;
-		pair->value = value;
+	while (1) {
+		pair = &data[hv];
+		if (pair->key_hash == 0) {
+			/* This is a brand new key */
+			pair->key_zstr = key_zstr;
+			pair->key_hash = key_hash;
+			pair->value = value;
+			h->used++;
 
-		h->used++;
-		if (h->mask * 3 / 4 < h->used) {
-			hash_si_rehash(h);
+			/* The size increased, so check if we need to expand the map */
+			if (h->mask * 3 / 4 < h->used) {
+				hash_si_rehash(h);
+			}
+			result.code = hash_si_code_inserted;
+			zend_string_addref(key_zstr);
+			return result;
+		} else if (pair->key_hash == key_hash && EXPECTED(zend_string_equals(pair->key_zstr, key_zstr))) {
+			/* This already exists in the hash map */
+			result.code = hash_si_code_exists;
+			result.value = pair->value;
+			return result;
 		}
-
-		result.code = hash_si_code_inserted;
-		return result;
-	} else {
-		result.code = hash_si_code_exists;
-		result.value = pair->value;
-		return result;
+		/* linear prob */
+		hv = (hv + 1) & mask;
 	}
 }
 /* }}} */

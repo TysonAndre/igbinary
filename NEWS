@@ -1,5 +1,93 @@
-3.0.1dev 2019-??-??
+3.1.7dev 202?-??-??
 =======
+
+* Use PHP's shared empty array instance when unserializing empty arrays in php 7.3+.
+  (helps slightly with memory usage when repeatedly unserializing,
+  when removing elements from arrays before unserializing them,
+  or when serializing values including an empty array that was unserialized)
+
+3.1.6 2020-10-08
+=======
+
+* Fix build failure with older C standard (e.g. building on CentOS 6).
+* Otherwise, identical to 3.1.6RC1.
+
+3.1.6RC1 2020-10-07
+=======
+
+* Fix igbinary_serialize incorrectly deduplicating arrays/objects/references when they were garbage collected/freed during serialization.
+
+3.1.5 2020-09-02
+=======
+
+* Update unit test expectation to match behavior in php 8 due to changes in php's handling of cyclic references in arrays.
+* Support API changes in php 8.0.0beta3.
+
+3.1.4 2020-07-05
+=======
+
+* Fix unserialization of PHP references to internal/user-defined classes using PHP 7.4's `__unserialize` (e.g. `ArrayObject`)
+
+3.1.3 2020-07-04
+=======
+
+* Properly serialize reference groups of size 1 (these can be created by array_walk_recursive and other functions).
+  Note that this does not fix the general case where values not being serialized are in the same reference group as a value being serialized.
+* PHP 8.0 compatibility fixes.
+
+3.1.2 2020-01-16
+=======
+
+* Speed up object, array, reference, and string serialization.
+* Speed up unserializing integers between 0 and 65535 (as values and array keys).
+* Speed up unserializing objects with declared properties.
+
+3.1.1 2020-01-16
+=======
+
+* Fix bug causing incorrect serialization for 1 in 2**32 strings on 64-bit php installations when string hashes collide.
+  (https://github.com/igbinary/igbinary/issues/260)
+
+3.1.1a1 2020-01-11
+=======
+
+* Throw when an uninitialized php 7.4 typed property is included in the result of __sleep(),
+  instead of emitting a notice and attempting to represent the unset/uninitialized value as null (#258).
+  See https://bugs.php.net/bug.php?id=79002
+
+  Uninitialized properties without types (from __sleep) continue to cause igbinary to emit notices and are represented as null.
+
+3.1.0 2019-12-27
+=======
+
+* Same as 3.1.0b4.
+
+3.1.0b4 2019-12-20
+=======
+
+* Don't call __destruct for objects where deferred __unserialize calls were not started (e.g. due to Serializable::unserialize throwing).
+
+3.1.0b3 2019-12-10
+=======
+
+* Skip over object properties that are uninitialized or unset when serializing, instead of serializing them as null.
+  This is done to avoid Errors when unserializing their values for php 7.4 typed properties.
+
+3.1.0b2 2019-12-09
+=======
+
+* Fix crashes related to unserializing instances of classes with php 7.4 typed properties.
+
+3.1.0b1 2019-12-08
+=======
+
+* Support php 7.4's __serialize/__unserialize the same way serialize()/unserialize() does.
+  This deliberately only supports __serialize/__unserialize in php 7.4, to making switching to/from serialize()/unserialize() as straightforward as possible.
+
+3.0.1 2019-03-20
+=======
+
+* Fix version check when statically building igbinary inside of the php-src folder.
 
 3.0.0 2019-02-17
 =======

@@ -27,7 +27,7 @@
  */
 struct hash_si_pair {
 	zend_string *key_zstr; /* Contains key, key length, and key hash */
-	uint32_t key_hash;		/**< Copy of ZSTR_H(key_zstr). Avoid dereferencing key_zstr if hashes are different. */
+	uint32_t key_hash;		/**< Copy of ZSTR_H(key_zstr) (or 1 if hash is truncated to 0). Avoid dereferencing key_zstr if hashes are different. */
 	uint32_t value;		    /**< Value. */
 };
 

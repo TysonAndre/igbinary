@@ -5,7 +5,8 @@ ARG_ENABLE("igbinary", "whether to enable igbinary support", "no");
 if (PHP_IGBINARY == "yes") {
   var dll = get_define('PHPDLL');
   var is_php5 = null != dll.match(/^php5/);
-  var is_php7 = !is_php5 && null != dll.match(/^php7/)
+  // php 8.x also uses src/php7
+  var is_php7 = !is_php5 && null != dll.match(/^php[78]/)
 
   if (CHECK_HEADER_ADD_INCLUDE("apc_serializer.h", "CFLAGS_IGBINARY", "..\\pecl\\apcu;ext\\apcu")) {
     AC_DEFINE('HAVE_APCU_SUPPORT', 1, "Whether to enable apcu support");

@@ -31,47 +31,77 @@ cache:
         c:\build-cache -> .appveyor.yml
 
 environment:
-        BIN_SDK_VER: 2.1.8
+        BIN_SDK_VER: 2.2.0
         matrix:
-                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+                  ARCH: x86
+                  VC: vs16
+                  PHP_VER: 8.0.0rc1
+                  TS: 1
+                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
                   ARCH: x64
-                  VC: vc14
-                  PHP_VER: 7.0.32
+                  VC: vs16
+                  PHP_VER: 8.0.0rc1
                   TS: 0
                 - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
                   ARCH: x64
                   VC: vc14
-                  PHP_VER: 7.0.32
+                  PHP_VER: 7.0.33
+                  TS: 0
+                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+                  ARCH: x64
+                  VC: vc14
+                  PHP_VER: 7.0.33
                   TS: 1
                 - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
                   ARCH: x86
                   VC: vc14
-                  PHP_VER: 7.0.32
+                  PHP_VER: 7.0.33
                   TS: 0
                 - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
                   ARCH: x86
                   VC: vc14
-                  PHP_VER: 7.0.32
+                  PHP_VER: 7.0.33
                   TS: 1
                 - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
                   ARCH: x64
                   VC: vc14
-                  PHP_VER: 7.1.22
+                  PHP_VER: 7.1.33
                   TS: 0
                 - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
                   ARCH: x86
                   VC: vc14
-                  PHP_VER: 7.1.22
+                  PHP_VER: 7.1.33
                   TS: 1
                 - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
                   ARCH: x64
                   VC: vc15
-                  PHP_VER: 7.2.10
+                  PHP_VER: 7.2.34
                   TS: 1
                 - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
                   ARCH: x86
                   VC: vc15
-                  PHP_VER: 7.2.10
+                  PHP_VER: 7.2.34
+                  TS: 0
+                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+                  ARCH: x86
+                  VC: vc15
+                  PHP_VER: 7.3.23
+                  TS: 0
+                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+                  ARCH: x64
+                  VC: vc15
+                  PHP_VER: 7.3.23
+                  TS: 1
+                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+                  ARCH: x64
+                  VC: vc15
+                  PHP_VER: 7.4.11
+                  TS: 1
+                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+                  ARCH: x86
+                  VC: vc15
+                  PHP_VER: 7.4.11
                   TS: 0
 
 build_script:
@@ -80,10 +110,16 @@ build_script:
                 $ts_part = ''
                 if ('0' -eq $env:TS) { $ts_part = '-nts' }
                 $bname = 'php-devel-pack-' + $env:PHP_VER + $ts_part + '-Win32-' + $env:VC.toUpper() + '-' + $env:ARCH + '.zip'
-                if (-not (Test-Path c:\build-cache\$bname)) {
-                        Invoke-WebRequest "http://windows.php.net/downloads/releases/archives/$bname" -OutFile "c:\build-cache\$bname"
-                        if (-not (Test-Path c:\build-cache\$bname)) {
-                                Invoke-WebRequest "http://windows.php.net/downloads/releases/$bname" -OutFile "c:\build-cache\$bname"
+                $urls = @(
+                        "https://windows.php.net/downloads/releases/archives/$bname",
+                        "https://windows.php.net/downloads/releases/$bname",
+                        "https://windows.php.net/downloads/qa/$bname",
+                        "https://windows.php.net/downloads/qa/archives/$bname"
+                )
+                foreach ($url in $urls) {
+                        Invoke-WebRequest $url -OutFile "c:\build-cache\$bname"
+                        if (Test-Path c:\build-cache\$bname) {
+                                break;
                         }
                 }
                 $dname0 = 'php-' + $env:PHP_VER + '-devel-' + $env:VC.toUpper() + '-' + $env:ARCH
@@ -97,10 +133,16 @@ build_script:
 
                 # Install the php binary
                 $bname = 'php-' + $env:PHP_VER + $ts_part + '-Win32-' + $env:VC.toUpper() + '-' + $env:ARCH + '.zip'
-                if (-not (Test-Path c:\build-cache\$bname)) {
-                        Invoke-WebRequest "http://windows.php.net/downloads/releases/archives/$bname" -OutFile "c:\build-cache\$bname"
-                        if (-not (Test-Path c:\build-cache\$bname)) {
-                                Invoke-WebRequest "http://windows.php.net/downloads/releases/$bname" -OutFile "c:\build-cache\$bname"
+                $urls = @(
+                        "https://windows.php.net/downloads/releases/archives/$bname",
+                        "https://windows.php.net/downloads/releases/$bname",
+                        "https://windows.php.net/downloads/qa/$bname",
+                        "https://windows.php.net/downloads/qa/archives/$bname"
+                )
+                foreach ($url in $urls) {
+                        Invoke-WebRequest $url -OutFile "c:\build-cache\$bname"
+                        if (Test-Path c:\build-cache\$bname) {
+                                break;
                         }
                 }
                 $dname = 'php-' + $env:PHP_VER + $ts_part + '-' + $env:VC.toUpper() + '-' + $env:ARCH
@@ -114,11 +156,16 @@ build_script:
                 #echo "" | Out-File -Encoding "ASCII" -Append task.bat
                 echo "" | Out-File -Encoding "ASCII" task.bat
                 echo "call phpize 2>&1" | Out-File -Encoding "ASCII" -Append task.bat
+                # Overwrite the version of run-tests.php generated by phpize
+                # with a version supporting -j<procs>
+                echo "copy ci\run-tests-parallel.php run-tests.php" | Out-File -Encoding "ASCII" -Append task.bat
+
                 $cmd = 'call configure --enable-igbinary --with-prefix=c:\build-cache\' + $dname + ' 2>&1'
                 echo $cmd | Out-File -Encoding "ASCII" -Append task.bat
                 echo "set REPORT_EXIT_STATUS=1" | Out-File -Encoding "ASCII" -Append task.bat
                 echo "set NO_INTERACTION=1" | Out-File -Encoding "ASCII" -Append task.bat
-                echo "set TEST_PHP_ARGS=--show-diff" | Out-File -Encoding "ASCII" -Append task.bat
+                # Configure this to use two worker processes (same as appveyor core count?) to run tests
+                echo "set TEST_PHP_ARGS=--show-diff -j2" | Out-File -Encoding "ASCII" -Append task.bat
                 $cmd = 'set TEST_PHP_EXECUTABLE=c:\build-cache\' + $dname + '\php.exe'
                 echo $cmd | Out-File -Encoding "ASCII" -Append task.bat
                 echo "nmake /nologo 2>&1" | Out-File -Encoding "ASCII" -Append task.bat

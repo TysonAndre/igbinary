@@ -1,6 +1,7 @@
 *.swp
 *.lo
 *.la
+*.tgz
 .deps
 .libs
 Makefile

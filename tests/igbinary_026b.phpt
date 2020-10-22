@@ -7,6 +7,9 @@ report_memleaks=0
 if (!extension_loaded('igbinary')) {
 	echo "skip no igbinary";
 }
+if (PHP_MAJOR_VERSION > 7) {
+	echo "skip requires php 7.x\n";
+}
 --FILE--
 <?php
 

@@ -9,11 +9,7 @@
 
 #ifndef IGBINARY_H
 #define IGBINARY_H
-#ifdef PHP_WIN32
-# include "win32/php_stdint.h"
-#else
-# include <stdint.h>
-#endif
+#include <stdint.h>
 
 /* Forward declarations. */
 struct zval;
@@ -22,7 +18,7 @@ struct zval;
 /** Binary protocol version of igbinary. */
 #define IGBINARY_FORMAT_VERSION 0x00000002
 
-#define PHP_IGBINARY_VERSION "3.0.1-dev"
+#define PHP_IGBINARY_VERSION "3.1.7dev"
 
 /* Macros */
 
