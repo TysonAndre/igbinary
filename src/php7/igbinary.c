@@ -21,6 +21,10 @@
 #include "ext/standard/info.h"
 #include "ext/standard/php_var.h"
 
+#if PHP_VERSION_ID >= 80100
+#include "Zend/zend_enum.h"
+#endif
+
 #if HAVE_PHP_SESSION && !defined(COMPILE_DL_SESSION)
 # include "ext/session/php_session.h"
 #endif
@@ -61,6 +65,7 @@
 #include "hash_ptr.h"
 #include "zend_alloc.h"
 #include "igbinary_zend_hash.h"
+
 
 #if HAVE_PHP_SESSION && !defined(COMPILE_DL_SESSION)
 /** Session serializer function prototypes. */
@@ -158,6 +163,7 @@ enum igbinary_type {
 
 	/* 25 */ igbinary_type_ref,				/**< Simple reference */
 	/* 26 */ igbinary_type_string64,		/**< String larger than 4GB (originally, php strings had a limit of 32-bit lengths). */
+	/* 27 */ igbinary_type_enum_case,		/**< PHP 8.1 Enum case. */
 };
 
 /* Defers calls to zval_ptr_dtor for values that are refcounted. */
@@ -1837,6 +1843,21 @@ inline static int igbinary_serialize_object_new_serializer(struct igbinary_seria
 }
 #endif
 /* }}} */
+/* {{{ igbinary_serialize_object_enum_case */
+#if PHP_VERSION_ID >= 80100
+inline static int igbinary_serialize_object_enum_case(struct igbinary_serialize_data *igsd, zend_object *obj, zend_class_entry *ce) {
+	if (UNEXPECTED(igbinary_serialize_object_name(igsd, ce->name) != 0)) {
+		return 1;
+	}
+	if (UNEXPECTED(igbinary_serialize8(igsd, (uint8_t)igbinary_type_enum_case))) {
+		return 1;
+	}
+	zval *case_name = zend_enum_fetch_case_name(obj);
+	ZEND_ASSERT(Z_TYPE_P(case_name) == IS_STRING);
+	return igbinary_serialize_string(igsd, Z_STR_P(case_name));
+}
+#endif
+/* }}} */
 /* {{{ igbinary_serialize_object */
 /** Serialize object.
  * @see ext/standard/var.c
@@ -1857,6 +1878,12 @@ inline static int igbinary_serialize_object(struct igbinary_serialize_data *igsd
 
 	/* custom serializer */
 	if (ce) {
+#if PHP_VERSION_ID >= 80100
+		if (ce->ce_flags & ZEND_ACC_ENUM) {
+			return igbinary_serialize_object_enum_case(igsd, Z_OBJ_P(z), ce);
+		}
+#endif
+
 #if PHP_VERSION_ID >= 70400
 #if PHP_VERSION_ID >= 80000
 		if (ce->__serialize)
@@ -2866,6 +2893,62 @@ static ZEND_COLD int igbinary_unserialize_object_ser(struct igbinary_unserialize
 	return 0;
 }
 /* }}} */
+/* {{{ igbinary_unserialize_object_enum_case */
+#if PHP_VERSION_ID >= 80100
+/** Unserializes object's property array. This is used to serialize objects implementing Serializable -interface. */
+static int igbinary_unserialize_object_enum_case(struct igbinary_unserialize_data *igsd, zval *const z, zend_class_entry *ce) {
+	if (UNEXPECTED(!(ce->ce_flags & ZEND_ACC_ENUM))) {
+		zend_error(E_WARNING, "igbinary_unserialize_object_enum_case: Class '%s' is not an enum", ZSTR_VAL(ce->name));
+		return 1;
+	}
+	if (IGB_NEEDS_MORE_DATA(igsd, 1)) {
+		zend_error(E_WARNING, "igbinary_unserialize_object_enum_case: end-of-data");
+		return 1;
+	}
+
+	enum igbinary_type t = (enum igbinary_type)igbinary_unserialize8(igsd);
+	zend_string *case_name;
+	switch (t) {
+		case igbinary_type_string8:
+		case igbinary_type_string16:
+		case igbinary_type_string32:
+		case igbinary_type_string64:
+			case_name = igbinary_unserialize_chararray(igsd, t);
+			break;
+		default:
+			case_name = igbinary_unserialize_string(igsd, t);
+			break;
+	}
+	if (UNEXPECTED(!case_name)) {
+		return 1;
+	}
+
+	zval *zv = zend_hash_find(&ce->constants_table, case_name);
+	if (UNEXPECTED(!zv)) {
+		php_error_docref(NULL, E_WARNING, "igbinary_unserialize_object_enum_case: Undefined constant %s::%s", ZSTR_VAL(ce->name), ZSTR_VAL(case_name));
+		return 1;
+	}
+
+	zend_class_constant *c = Z_PTR_P(zv);
+	if (UNEXPECTED(!(c->const_flags & ZEND_CLASS_CONST_IS_CASE))) {
+		php_error_docref(NULL, E_WARNING, "igbinary_unserialize_object_enum_case: %s::%s is not an enum case", ZSTR_VAL(ce->name), ZSTR_VAL(case_name));
+		return 1;
+	}
+	zval *value = &c->value;
+	if (Z_TYPE_P(value) == IS_CONSTANT_AST) {
+		zval_update_constant_ex(value, c->ce);
+		if (UNEXPECTED(EG(exception) != NULL)) {
+			return 1;
+		}
+	}
+	ZEND_ASSERT(Z_TYPE_P(value) == IS_OBJECT);
+	/* increment the reference count and copy the enum case object into the constructed value. */
+	ZVAL_COPY(z, value);
+
+	return 0;
+}
+#endif
+/* }}} */
 /* {{{ igbinary_unserialize_object */
 /** Unserialize an object.
  * @see ext/standard/var_unserializer.c in the php-src repo. Parts of this code are based on that.
@@ -3051,6 +3134,27 @@ inline static int igbinary_unserialize_object(struct igbinary_unserialize_data *
 			}
 			break;
 		}
+		case igbinary_type_enum_case:
+#if PHP_VERSION_ID >= 80100
+			r = igbinary_unserialize_object_enum_case(igsd, z, ce);
+			zend_string_release(class_name);
+
+			ZEND_ASSERT(Z_TYPE_P(z) == IS_OBJECT);
+			struct igbinary_value_ref *ref = &IGB_REF_VAL_2(igsd, ref_n);
+			if ((flags & WANT_REF) != 0) {
+				ZVAL_MAKE_REF(z);
+				ref->reference.reference = Z_REF_P(z);
+				ref->type = IG_REF_IS_REFERENCE;
+			} else {
+				ref->reference.object = Z_OBJ_P(z);
+				ref->type = IG_REF_IS_OBJECT;
+			}
+			return r;
+#else
+			zend_error(E_WARNING, "igbinary_unserialize_object: Cannot unserialize enum cases prior to php 8.1 at position %zu", (size_t)IGB_BUFFER_OFFSET(igsd));
+			r = 1;
+#endif
+			break;
 		default:
 			zend_error(E_WARNING, "igbinary_unserialize_object: unknown object inner type '%02x', position %zu", t, (size_t)IGB_BUFFER_OFFSET(igsd));
 			r = 1;
