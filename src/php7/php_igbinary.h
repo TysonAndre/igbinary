@@ -26,6 +26,7 @@ extern zend_module_entry igbinary_module_entry;
 
 ZEND_BEGIN_MODULE_GLOBALS(igbinary)
 	zend_bool compact_strings;
+	zend_bool use_v3_serialize_format;
 ZEND_END_MODULE_GLOBALS(igbinary)
 
 #ifdef ZTS

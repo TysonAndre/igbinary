@@ -16,9 +16,11 @@ struct zval;
 
 /* Constants and constant macros */
 /** Binary protocol version of igbinary. */
-#define IGBINARY_FORMAT_VERSION 0x00000002
+#define IGBINARY_FORMAT_VERSION_V3 0x00000003
+#define IGBINARY_FORMAT_VERSION_V2 0x00000002
+#define IGBINARY_FORMAT_VERSION IGBINARY_FORMAT_VERSION_V3
 
-#define PHP_IGBINARY_VERSION "3.2.9"
+#define PHP_IGBINARY_VERSION "3.2.10-dev"
 
 /* Macros */
 
@@ -72,5 +74,24 @@ IGBINARY_API int igbinary_serialize_ex(uint8_t **ret, size_t *ret_len, zval *z, 
  * @return 0 on success, 1 elsewhere.
  */
 IGBINARY_API int igbinary_unserialize(const uint8_t *buf, size_t buf_len, zval *z);
+
+static zend_always_inline int _igbinary_has_valid_header(const uint8_t *buf, size_t buf_len) {
+	if (buf_len < 5) {
+		/* Must have 4 header bytes and at least one byte of data */
+		return 0;
+	}
+	/* Unserialize 32bit value the same way on big-endian and little-endian architectures.
+	 * This compiles to a load+optional bswap when compiler optimizations are enabled. */
+	const uint32_t ret =
+	    ((uint32_t)(buf[0]) << 24) |
+	    ((uint32_t)(buf[1]) << 16) |
+	    ((uint32_t)(buf[2]) << 8) |
+	    ((uint32_t)(buf[3]));
+	return ret == 1 || ret == 2;
+}
+/** This is defined as a macro and a static C function
+ * to allow callers to use the macro from newer igbinary versions even with older igbinary installations. */
+#define igbinary_has_valid_header(buf, buf_len) _igbinary_has_valid_header((buf), (buf_len))
+
 
 #endif /* IGBINARY_H */
