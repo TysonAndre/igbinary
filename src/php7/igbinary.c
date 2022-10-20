@@ -69,14 +69,6 @@
 #include "zend_portability.h"
 #include "igbinary_zend_hash.h"
 
-#ifndef ZEND_UNREACHABLE
-#if ZEND_DEBUG
-# define ZEND_UNREACHABLE() do {ZEND_ASSERT(0); ZEND_ASSUME(0);} while (0)
-#else
-# define ZEND_UNREACHABLE() ZEND_ASSUME(0)
-#endif
-#endif
-
 #if HAVE_PHP_SESSION && !defined(COMPILE_DL_SESSION)
 /** Session serializer function prototypes. */
 PS_SERIALIZER_FUNCS(igbinary);
@@ -86,6 +78,15 @@ PS_SERIALIZER_FUNCS(igbinary);
 /** Apc serializer function prototypes */
 static int APC_SERIALIZER_NAME(igbinary) (APC_SERIALIZER_ARGS);
 static int APC_UNSERIALIZER_NAME(igbinary) (APC_UNSERIALIZER_ARGS);
+#endif
+
+/* {{{ Common macro/helper definitions */
+#ifndef ZEND_UNREACHABLE
+#if ZEND_DEBUG
+# define ZEND_UNREACHABLE() do {ZEND_ASSERT(0); ZEND_ASSUME(0);} while (0)
+#else
+# define ZEND_UNREACHABLE() ZEND_ASSUME(0)
+#endif
 #endif
 
 static zend_always_inline HashTable *HASH_OF_OBJECT(zval *p) {
@@ -129,7 +130,7 @@ static zend_always_inline void zval_ptr_dtor_str(zval *zval_ptr)
 # define IGBINARY_IS_NOT_SERIALIZABLE(ce) (0)
 # define IGBINARY_IS_NOT_UNSERIALIZABLE(ce) (0)
 #endif
-
+/* }}} */
 
 /* {{{ V3 Types */
 enum igbinary_v3_type {
@@ -708,6 +709,7 @@ static inline int igsd_defer_dtor(struct deferred_dtor_tracker *tracker, zval *z
 }
 /* }}} */
 
+/* {{{ igbinary_unserialize_zval (v2 or v3) */
 zend_always_inline static int igbinary_unserialize_zval(struct igbinary_unserialize_data *igsd, uint32_t version, zval *const z, int flags) {
 	if (version == 3) {
 		return igbinary_unserialize_v3_zval(igsd, z, flags);
@@ -715,6 +717,7 @@ zend_always_inline static int igbinary_unserialize_zval(struct igbinary_unserial
 		return igbinary_unserialize_v2_zval(igsd, z, flags);
 	}
 }
+/* }}} */
 
 /* {{{ int igbinary_serialize(uint8_t**, size_t*, zval*) */
 IGBINARY_API int igbinary_serialize(uint8_t **ret, size_t *ret_len, zval *z) {
@@ -1104,6 +1107,7 @@ inline static void igbinary_serialize_header(struct igbinary_serialize_data *igs
 	igsd->buffer_size = 4;
 }
 /* }}} */
+/* {{{ igbinary_raise_capacity */
 static int igbinary_raise_capacity(struct igbinary_serialize_data *igsd, size_t size) {
 	do {
 		igsd->buffer_capacity *= 2;
@@ -1119,6 +1123,7 @@ static int igbinary_raise_capacity(struct igbinary_serialize_data *igsd, size_t 
 
 	return 0;
 }
+/* }}} */
 /* {{{ igbinary_serialize_resize */
 /** Expands igbinary_serialize_data if necessary. */
 zend_always_inline static int igbinary_serialize_resize(struct igbinary_serialize_data *igsd, size_t size) {
@@ -1188,7 +1193,7 @@ zend_always_inline static int igbinary_serialize64(struct igbinary_serialize_dat
 	return 0;
 }
 /* }}} */
-/* {{{ igbinary_serialize8 */
+/* {{{ igbinary_serialize8_and_8 */
 /** Serialize 8bit value + 8bit value. */
 zend_always_inline static int igbinary_serialize8_and_8(struct igbinary_serialize_data *igsd, uint8_t i, uint8_t v) {
 	uint8_t *append_buffer;
@@ -1201,6 +1206,7 @@ zend_always_inline static int igbinary_serialize8_and_8(struct igbinary_serializ
 	return 0;
 }
 /* }}} */
+/* {{{ igbinary_serialize8_and_16 */
 /** Serialize 8bit value + 16bit value. */
 zend_always_inline static int igbinary_serialize8_and_16(struct igbinary_serialize_data *igsd, uint8_t i, uint16_t v) {
 	uint8_t *append_buffer;
@@ -1215,6 +1221,7 @@ zend_always_inline static int igbinary_serialize8_and_16(struct igbinary_seriali
 	return 0;
 }
 /* }}} */
+/* {{{ igbinary_serialize8_and_32 */
 /** Serialize 8bit value + 32bit value. */
 zend_always_inline static int igbinary_serialize8_and_32(struct igbinary_serialize_data *igsd, uint8_t i, uint32_t v) {
 	uint8_t *append_buffer;
@@ -1231,6 +1238,7 @@ zend_always_inline static int igbinary_serialize8_and_32(struct igbinary_seriali
 	return 0;
 }
 /* }}} */
+/* {{{ igbinary_serialize8_and_64 */
 /** Serialize 8bit value + 64bit value. */
 inline static int igbinary_serialize8_and_64(struct igbinary_serialize_data *igsd, uint8_t i, uint64_t v) {
 	uint8_t *append_buffer;
@@ -1372,6 +1380,7 @@ inline static int igbinary_serialize_v3_string(struct igbinary_serialize_data *i
 }
 /* }}} */
 
+/* {{{ igbinary_serialize_extremely_long_chararray */
 #if SIZEOF_SIZE_T > 4
 static zend_never_inline int igbinary_serialize_extremely_long_chararray(struct igbinary_serialize_data *igsd, uint8_t type, const char *s, size_t len) {
 	RETURN_1_IF_NON_ZERO(igbinary_serialize_resize(igsd, len + 9));
@@ -1392,6 +1401,7 @@ static zend_never_inline int igbinary_serialize_extremely_long_chararray(struct 
 	return 0;
 }
 #endif
+/* }}} */
 
 /************************************************************************
  * V3 serialization and unserialization code                            *
@@ -2087,6 +2097,7 @@ static int igbinary_serialize_v3_zval(struct igbinary_serialize_data *igsd, zval
 	return 0;
 }
 /* }}} */
+/* End of functions for serialize v3, start of functions for unserialize v3 */
 /* {{{ igbinary_unserialize_data_init */
 /** Inits igbinary_unserialize_data. */
 inline static int igbinary_unserialize_data_init(struct igbinary_unserialize_data *igsd) {
@@ -3698,9 +3709,7 @@ enum igbinary_v2_type {
 };
 /* }}} */
 
-zend_always_inline static int igbinary_serialize_data_init(struct igbinary_serialize_data *igsd, bool scalar);
-zend_always_inline static void igbinary_serialize_data_deinit(struct igbinary_serialize_data *igsd);
-
+/* {{{ V2 Forward function declarations */
 zend_always_inline static int igbinary_serialize_v2_null(struct igbinary_serialize_data *igsd);
 zend_always_inline static int igbinary_serialize_v2_bool(struct igbinary_serialize_data *igsd, int b);
 zend_always_inline static int igbinary_serialize_v2_long(struct igbinary_serialize_data *igsd, zend_long l);
@@ -3712,6 +3721,7 @@ zend_always_inline static int igbinary_serialize_v2_array_ref(struct igbinary_se
 zend_always_inline static int igbinary_serialize_v2_array_sleep(struct igbinary_serialize_data *igsd, zval *z, HashTable *ht, zend_class_entry *ce);
 zend_always_inline static int igbinary_serialize_v2_object_name(struct igbinary_serialize_data *igsd, zend_string *name);
 zend_always_inline static int igbinary_serialize_v2_object(struct igbinary_serialize_data *igsd, zval *z);
+/* }}} */
 
 /* {{{ igbinary_serialize_v2_null */
 /** Serializes null. */
@@ -3829,7 +3839,6 @@ inline static int igbinary_serialize_v2_string(struct igbinary_serialize_data *i
 	return igbinary_serialize_v2_chararray(igsd, ZSTR_VAL(s), len);
 }
 /* }}} */
-
 /* {{{ igbinary_serialize_v2_chararray */
 /** Serializes string data as the type followed by the length followed by the raw character array. */
 inline static int igbinary_serialize_v2_chararray(struct igbinary_serialize_data *igsd, const char *s, size_t len) {
@@ -4468,6 +4477,7 @@ static int igbinary_serialize_v2_zval(struct igbinary_serialize_data *igsd, zval
 	return 0;
 }
 /* }}} */
+/* End of functions for serialize v2, start of functions for unserialize v2 */
 /* {{{ igbinary_unserialize_v2_data_init */
 /** Inits igbinary_unserialize_data. */
 inline static int igbinary_unserialize_v2_data_init(struct igbinary_unserialize_data *igsd) {
