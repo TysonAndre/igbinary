@@ -75,10 +75,10 @@ if test "$PHP_IGBINARY" != "no"; then
 
   AC_MSG_CHECKING(additional compiler flags)
   dnl Only export symbols marked as IGBINARY_API, reducing the binary size, and allowing for certain optimizations.
-  AC_CHECK_COMPILE_FLAG([-fvisibility=hidden],
+  AX_CHECK_COMPILE_FLAG([-fvisibility=hidden],
                         [PHP_IGBINARY_CFLAGS="$PHP_IGBINARY_CFLAGS -fvisibility=hidden"])
   dnl Enable link-time optimizations
-  AC_CHECK_COMPILE_FLAG([-flto],
+  AX_CHECK_COMPILE_FLAG([-flto],
                         [PHP_IGBINARY_CFLAGS="$PHP_IGBINARY_CFLAGS -flto"])
 
 

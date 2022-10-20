@@ -1,7 +1,154 @@
+/*
+  +----------------------------------------------------------------------+
+  | See COPYING file for further copyright information                   |
+  +----------------------------------------------------------------------+
+  | Author: Oleg Grenrus <oleg.grenrus@dynamoid.com>                     |
+  | See CREDITS for contributors                                         |
+  +----------------------------------------------------------------------+
+*/
 
 /************************************************************************
  * V3 serialization and unserialization code                            *
  ***********************************************************************/
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef PHP_WIN32
+# include "ig_win32.h"
+#endif
+
+#include "php.h"
+#include "php_ini.h"
+#include "Zend/zend_alloc.h"
+#include "Zend/zend_exceptions.h"
+#include "Zend/zend_interfaces.h"
+#include "ext/standard/info.h"
+#include "ext/standard/php_var.h"
+
+#if PHP_VERSION_ID >= 80100
+#include "Zend/zend_enum.h"
+#endif
+
+#if HAVE_PHP_SESSION && !defined(COMPILE_DL_SESSION)
+# include "ext/session/php_session.h"
+#endif
+
+#include "ext/standard/php_incomplete_class.h"
+
+#if PHP_VERSION_ID < 70400
+#define zend_get_properties_for(struc, purpose) Z_OBJPROP_P((struc))
+
+#define zend_release_properties(ht) do {} while (0)
+#endif
+
+#if PHP_VERSION_ID < 70300
+#define zend_string_efree(s) zend_string_release((s))
+#define GC_ADDREF(p) (++GC_REFCOUNT((p)))
+#endif
+
+#if defined(HAVE_APCU_SUPPORT)
+# include "ext/apcu/apc_serializer.h"
+#endif /* HAVE_APCU_SUPPORT */
+
+#include "php_igbinary.h"
+
+#include "igbinary.h"
+#include "igbinary_macros.h"
+
+#include <assert.h>
+#include <ctype.h>
+
+#ifndef PHP_WIN32
+# include <inttypes.h>
+# include <stdbool.h>
+# include <stdint.h>
+#endif
+
+#include <stddef.h>
+#include "hash.h"
+#include "hash_ptr.h"
+#include "zend_alloc.h"
+#include "zend_portability.h"
+#include "igbinary_zend_hash.h"
+
+#include "igbinary_impl.h"
+
+/* {{{ enum igbinary_v3_type (V3 Types) */
+enum igbinary_v3_type {
+	/* NOTE: The values 00-03 were chosen to match the current values for IS_UNDEF..IS_TRUE. */
+
+	/* 00 */ igbinary_v3_type_undef,			/**< Undefined. TODO handle this for a declared instance property that was omitted from serialization */
+	/* 01 */ igbinary_v3_type_null,				/**< Null. */
+	/* 02 */ igbinary_v3_type_bool_false,		/**< Boolean true. */
+	/* 03 */ igbinary_v3_type_bool_true,		/**< Boolean false. */
+
+	/* TODO reindex the other values */
+
+	/* 04 */ igbinary_v3_type_long_literal0,	/**< 0 */
+	/* 05 */ igbinary_v3_type_long_literal1,	/**< 1 */
+	/* 06 */ igbinary_v3_type_long_literal2,	/**< 2 */
+	/* 07 */ igbinary_v3_type_long_literal3,	/**< 3 */
+	/* 08 */ igbinary_v3_type_long_literal4,	/**< 4 */
+	/* 09 */ igbinary_v3_type_long_literal5,	/**< 5 */
+	/* 0a */ igbinary_v3_type_long_literal6,	/**< 6 */
+	/* 0b */ igbinary_v3_type_long_literal7,	/**< 7 */
+
+	/* 0c */ igbinary_v3_type_long8p,			/**< Long 8bit positive. */
+	/* 0d */ igbinary_v3_type_long8n,			/**< Long 8bit negative. */
+	/* 0e */ igbinary_v3_type_long16p,			/**< Long 16bit positive. */
+	/* 0f */ igbinary_v3_type_long16n,			/**< Long 16bit negative. */
+	/* 10 */ igbinary_v3_type_long32p,			/**< Long 32bit positive. */
+	/* 11 */ igbinary_v3_type_long32n,			/**< Long 32bit negative. */
+	/* 12 */ igbinary_v3_type_long64signed,		/**< Long signed 64bit (int64_t range). */
+
+	/* 13 */ igbinary_v3_type_double,			/**< C Double. */
+
+	/* 14 */ igbinary_v3_type_string_empty,		/**< Empty string. */
+	/* 15 */ igbinary_v3_type_string_char,		/**< Single character string. These are still interned for use in class names for object_id8. */
+
+	/* 16 */ igbinary_v3_type_string8,			/**< String. */
+	/* 17 */ igbinary_v3_type_string16,			/**< String. */
+	/* 18 */ igbinary_v3_type_string32,			/**< String. */
+	/* 19 */ igbinary_v3_type_string64,			/**< String larger than 4GB (originally, php strings had a limit of 32-bit lengths). */
+
+	/* 20 */ igbinary_v3_type_string_private8,		/**< Private property,   8bit, "\x00$className\x00$name" */
+	/* 20 */ igbinary_v3_type_string_protected8,	/**< Protected property, 8bit, "\x00*\x00$name" */
+
+	/* 1a */ igbinary_v3_type_string_id8,		/**< String id. (String that was already unserialized) */
+	/* 1b */ igbinary_v3_type_string_id16,		/**< String id. */
+	/* 1c */ igbinary_v3_type_string_id32,		/**< String id. */
+
+	/* 1d */ igbinary_v3_type_array0,			/**< Empty array. */
+	/* 1e */ igbinary_v3_type_array8,			/**< Array. */
+	/* 1f */ igbinary_v3_type_array16,			/**< Array. */
+	/* 20 */ igbinary_v3_type_array32,			/**< Array. */
+
+	/* 21 */ igbinary_v3_type_list8,			/**< Array with keys 0..count-1 in that order. */
+	/* 22 */ igbinary_v3_type_list16,			/**< Array. */
+	/* 1e */ igbinary_v3_type_list32,			/**< Array. */
+
+	/* 1d */ igbinary_v3_type_object_id8,		/**< Object id. Indicates the start of an object being unserialized with a class name that has already been used as a string. */
+	/* 1e */ igbinary_v3_type_object_id16,		/**< Object id. */
+	/* 17 */ igbinary_v3_type_object_id32,		/**< Object id. */
+
+	/* 1f */ igbinary_v3_type_object8,			/**< Object. */
+	/* 20 */ igbinary_v3_type_object16,			/**< Object. */
+	/* 21 */ igbinary_v3_type_object32,			/**< Object. */
+
+	/* 22 */ igbinary_v3_type_object_ser8,		/**< Object serialized data. */
+	/* 23 */ igbinary_v3_type_object_ser16,		/**< Object serialized data. */
+	/* 24 */ igbinary_v3_type_object_ser32,		/**< Object serialized data. */
+
+	/* 25 */ igbinary_v3_type_ref,				/**< Simple reference */
+	/* 26 */ igbinary_v3_type_enum_case,		/**< PHP 8.1 Enum case. */
+
+	/* 27 */ igbinary_v3_type_ref8,				/**< PHP reference. */
+	/* 28 */ igbinary_v3_type_ref16,			/**< PHP reference. */
+	/* 29 */ igbinary_v3_type_ref32,			/**< PHP reference. */
+
+};
 
 zend_always_inline static int igbinary_serialize_v3_null(struct igbinary_serialize_data *igsd);
 zend_always_inline static int igbinary_serialize_v3_bool(struct igbinary_serialize_data *igsd, int b);
@@ -290,7 +437,7 @@ inline static int igbinary_serialize_v3_array(struct igbinary_serialize_data *ig
 /* }}} */
 /* {{{ igbinary_serialize_v3_array_wrapper */
 int igbinary_serialize_v3_array_wrapper(struct igbinary_serialize_data *igsd, zval *z, bool object, bool incomplete_class, bool serialize_props) {
-	return igbinary_serialize_v3_array(igsd, zval, object, incomplete_class, serialize_props);
+	return igbinary_serialize_v3_array(igsd, z, object, incomplete_class, serialize_props);
 }
 /* }}} */
 /* {{{ igbinary_serialize_v3_array_ref */

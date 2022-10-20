@@ -180,13 +180,11 @@ zend_always_inline static uint32_t igbinary_unserialize32(struct igbinary_unseri
 zend_always_inline static uint64_t igbinary_unserialize64(struct igbinary_unserialize_data *igsd);
 
 zend_never_inline zend_string* igbinary_unserialize_extremely_long_chararray(struct igbinary_unserialize_data *igsd);
+static int igbinary_unserialize_v3_zval(struct igbinary_unserialize_data *igsd, zval *const z, int flags);
 int igbinary_unserialize_v3_zval_wrapper(struct igbinary_unserialize_data *igsd, zval *const z, int flags);
 /* }}} */
 
 /* {{{ Serializing functions prototypes */
-zend_always_inline static int igbinary_serialize_data_init(struct igbinary_serialize_data *igsd, bool scalar);
-zend_always_inline static void igbinary_serialize_data_deinit(struct igbinary_serialize_data *igsd);
-
 zend_always_inline static void igbinary_serialize_header(struct igbinary_serialize_data *igsd, const uint8_t version);
 
 zend_always_inline static int igbinary_serialize8(struct igbinary_serialize_data *igsd, uint8_t i);
@@ -447,6 +445,159 @@ inline static uint64_t igbinary_unserialize64(struct igbinary_unserialize_data *
 	return ret;
 }
 /* }}} */
+/* {{{ igbinary_raise_capacity */
+static int igbinary_raise_capacity(struct igbinary_serialize_data *igsd, size_t size) {
+	do {
+		igsd->buffer_capacity *= 2;
+	} while (igsd->buffer_size + size >= igsd->buffer_capacity);
+
+	uint8_t *const old_buffer = igsd->buffer;
+	igsd->buffer = erealloc(old_buffer, igsd->buffer_capacity);
+	if (UNEXPECTED(igsd->buffer == NULL)) {
+		/* We failed to allocate a larger buffer for the result. Free the memory used for the original buffer. */
+		efree(old_buffer);
+		return 1;
+	}
+
+	return 0;
+}
+/* }}} */
+/* {{{ igbinary_serialize_resize */
+/** Expands igbinary_serialize_data if necessary. */
+zend_always_inline static int igbinary_serialize_resize(struct igbinary_serialize_data *igsd, size_t size) {
+	if (igsd->buffer_size + size < igsd->buffer_capacity) {
+		return 0;
+	}
+
+	return igbinary_raise_capacity(igsd, size);
+}
+/* }}} */
+/* {{{ igbinary_serialize8 */
+/** Serialize 8bit value. */
+zend_always_inline static int igbinary_serialize8(struct igbinary_serialize_data *igsd, uint8_t i) {
+	RETURN_1_IF_NON_ZERO(igbinary_serialize_resize(igsd, 1));
+
+	igsd->buffer[igsd->buffer_size++] = i;
+	return 0;
+}
+/* }}} */
+/* {{{ igbinary_serialize16 */
+/** Serialize 16bit value. */
+zend_always_inline static int igbinary_serialize16(struct igbinary_serialize_data *igsd, uint16_t i) {
+	uint8_t *append_buffer;
+	RETURN_1_IF_NON_ZERO(igbinary_serialize_resize(igsd, 2));
+
+	append_buffer = &igsd->buffer[igsd->buffer_size];
+	append_buffer[0] = (uint8_t)(i >> 8 & 0xff);
+	append_buffer[1] = (uint8_t)(i & 0xff);
+	igsd->buffer_size += 2;
+
+	return 0;
+}
+/* }}} */
+/* {{{ igbinary_serialize32 */
+/** Serialize 32bit value. */
+zend_always_inline static int igbinary_serialize32(struct igbinary_serialize_data *igsd, uint32_t i) {
+	uint8_t *append_buffer;
+	RETURN_1_IF_NON_ZERO(igbinary_serialize_resize(igsd, 4));
+
+	append_buffer = &igsd->buffer[igsd->buffer_size];
+	append_buffer[0] = (uint8_t)(i >> 24 & 0xff);
+	append_buffer[1] = (uint8_t)(i >> 16 & 0xff);
+	append_buffer[2] = (uint8_t)(i >> 8 & 0xff);
+	append_buffer[3] = (uint8_t)(i & 0xff);
+	igsd->buffer_size += 4;
+
+	return 0;
+}
+/* }}} */
+/* {{{ igbinary_serialize64 */
+/** Serialize 64bit value. */
+zend_always_inline static int igbinary_serialize64(struct igbinary_serialize_data *igsd, uint64_t i) {
+	uint8_t *append_buffer;
+	RETURN_1_IF_NON_ZERO(igbinary_serialize_resize(igsd, 8));
+
+	append_buffer = &igsd->buffer[igsd->buffer_size];
+	append_buffer[0] = (uint8_t)(i >> 56 & 0xff);
+	append_buffer[1] = (uint8_t)(i >> 48 & 0xff);
+	append_buffer[2] = (uint8_t)(i >> 40 & 0xff);
+	append_buffer[3] = (uint8_t)(i >> 32 & 0xff);
+	append_buffer[4] = (uint8_t)(i >> 24 & 0xff);
+	append_buffer[5] = (uint8_t)(i >> 16 & 0xff);
+	append_buffer[6] = (uint8_t)(i >> 8 & 0xff);
+	append_buffer[7] = (uint8_t)(i & 0xff);
+	igsd->buffer_size += 8;
+
+	return 0;
+}
+/* }}} */
+/* {{{ igbinary_serialize8_and_8 */
+/** Serialize 8bit value + 8bit value. */
+zend_always_inline static int igbinary_serialize8_and_8(struct igbinary_serialize_data *igsd, uint8_t i, uint8_t v) {
+	uint8_t *append_buffer;
+	RETURN_1_IF_NON_ZERO(igbinary_serialize_resize(igsd, 2));
+	append_buffer = &igsd->buffer[igsd->buffer_size];
+
+	append_buffer[0] = i;
+	append_buffer[1] = v;
+	igsd->buffer_size += 2;
+	return 0;
+}
+/* }}} */
+/* {{{ igbinary_serialize8_and_16 */
+/** Serialize 8bit value + 16bit value. */
+zend_always_inline static int igbinary_serialize8_and_16(struct igbinary_serialize_data *igsd, uint8_t i, uint16_t v) {
+	uint8_t *append_buffer;
+	RETURN_1_IF_NON_ZERO(igbinary_serialize_resize(igsd, 3));
+	append_buffer = &igsd->buffer[igsd->buffer_size];
+
+	append_buffer[0] = i;
+	append_buffer[1] = (uint8_t)(v >> 8 & 0xff);
+	append_buffer[2] = (uint8_t)(v & 0xff);
+;
+	igsd->buffer_size += 3;
+	return 0;
+}
+/* }}} */
+/* {{{ igbinary_serialize8_and_32 */
+/** Serialize 8bit value + 32bit value. */
+zend_always_inline static int igbinary_serialize8_and_32(struct igbinary_serialize_data *igsd, uint8_t i, uint32_t v) {
+	uint8_t *append_buffer;
+	RETURN_1_IF_NON_ZERO(igbinary_serialize_resize(igsd, 5));
+	append_buffer = &igsd->buffer[igsd->buffer_size];
+
+	append_buffer[0] = i;
+	append_buffer[1] = (uint8_t)(v >> 24 & 0xff);
+	append_buffer[2] = (uint8_t)(v >> 16 & 0xff);
+	append_buffer[3] = (uint8_t)(v >> 8 & 0xff);
+	append_buffer[4] = (uint8_t)(v & 0xff);
+;
+	igsd->buffer_size += 5;
+	return 0;
+}
+/* }}} */
+/* {{{ igbinary_serialize8_and_64 */
+/** Serialize 8bit value + 64bit value. */
+inline static int igbinary_serialize8_and_64(struct igbinary_serialize_data *igsd, uint8_t i, uint64_t v) {
+	uint8_t *append_buffer;
+	RETURN_1_IF_NON_ZERO(igbinary_serialize_resize(igsd, 9));
+	append_buffer = &igsd->buffer[igsd->buffer_size];
+
+	append_buffer[0] = i;
+	append_buffer[1] = (uint8_t)(v >> 56 & 0xff);
+	append_buffer[2] = (uint8_t)(v >> 48 & 0xff);
+	append_buffer[3] = (uint8_t)(v >> 40 & 0xff);
+	append_buffer[4] = (uint8_t)(v >> 32 & 0xff);
+	append_buffer[5] = (uint8_t)(v >> 24 & 0xff);
+	append_buffer[6] = (uint8_t)(v >> 16 & 0xff);
+	append_buffer[7] = (uint8_t)(v >> 8 & 0xff);
+	append_buffer[8] = (uint8_t)(v & 0xff);
+;
+	igsd->buffer_size += 9;
+	return 0;
+}
+/* }}} */
+
 /* igbinary_var_serialize_call_magic_serialize {{{ */
 // Source: ext/standard/var.c from php-src
 #if PHP_VERSION_ID >= 70400
