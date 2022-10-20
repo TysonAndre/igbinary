@@ -19,13 +19,13 @@ igbinary_unserialize("\x00\x00\x00\x02\x17\x01\x58\x16\x00\x00\x01");
 --EXPECTF--
 string(18) "000000021701581400"
 One byte
-igbinary_unserialize_object_properties: end-of-data
+igbinary_unserialize_v2_object_properties: end-of-data
 NULL
 Two byte
-igbinary_unserialize_object_properties: end-of-data
+igbinary_unserialize_v2_object_properties: end-of-data
 NULL
-igbinary_unserialize_object_properties: end-of-data
+igbinary_unserialize_v2_object_properties: end-of-data
 Four byte
-igbinary_unserialize_object_properties: end-of-data
+igbinary_unserialize_v2_object_properties: end-of-data
 NULL
-igbinary_unserialize_object_properties: end-of-data
+igbinary_unserialize_v2_object_properties: end-of-data

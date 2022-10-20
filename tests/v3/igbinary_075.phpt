@@ -1,5 +1,5 @@
 --TEST--
-igbinary and not enough data for array
+igbinary and not enough data for array of object properties
 --INI--
 igbinary.use_v3_serialize_format=1
 --FILE--
@@ -10,16 +10,16 @@ set_error_handler(function ($errno, $errstr) {
 class X {}
 var_dump(bin2hex($s = igbinary_serialize(new X())));
 echo "One byte\n";
-var_dump(igbinary_unserialize("\x00\x00\x00\x02\x17\x01\x58\x14"));
+var_dump(igbinary_unserialize("\x00\x00\x00\x03\x1f\x01\x58\x19"));
 echo "Two byte\n";
-var_dump(igbinary_unserialize("\x00\x00\x00\x02\x17\x01\x58\x15"));
-igbinary_unserialize("\x00\x00\x00\x02\x17\x01\x58\x15\xff");
+var_dump(igbinary_unserialize("\x00\x00\x00\x03\x1f\x01\x58\x1a"));
+igbinary_unserialize("\x00\x00\x00\x03\x1f\x01\x58\x1a\xff");
 echo "Four byte\n";
-var_dump(igbinary_unserialize("\x00\x00\x00\x02\x17\x01\x58\x16"));
-igbinary_unserialize("\x00\x00\x00\x02\x17\x01\x58\x16\x00\x00\x01");
+var_dump(igbinary_unserialize("\x00\x00\x00\x03\x1f\x01\x58\x1b"));
+igbinary_unserialize("\x00\x00\x00\x03\x1f\x01\x58\x1b\x00\x00\x01");
 ?>
 --EXPECTF--
-string(18) "000000031701581400"
+string(18) "000000031f015818"
 One byte
 igbinary_unserialize_v3_object_properties: end-of-data
 NULL

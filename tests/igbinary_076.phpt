@@ -13,7 +13,7 @@ var_dump(igbinary_unserialize("\x00\x00\x00\x02\x14\x01\x00"));
 ?>
 --EXPECTF--
 string(24) "00000002140111036b657905"
-igbinary_unserialize_chararray: end-of-data
+igbinary_unserialize_v2_chararray: end-of-data
 NULL
 array(0) {
 }

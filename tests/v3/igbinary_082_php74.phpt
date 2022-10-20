@@ -20,7 +20,9 @@ $arrayObject = new ArrayObject();
 $testClass = new TestClass();
 $testClass->setEnv($arrayObject);
 
-var_dump(igbinary_unserialize(igbinary_serialize($testClass)));
+$ser = igbinary_serialize($testClass);
+echo bin2hex($ser), "\n";
+var_dump(igbinary_unserialize($ser));
 ?>
 --EXPECTF--
 object(TestClass)#%d (1) {

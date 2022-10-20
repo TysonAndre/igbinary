@@ -22,3 +22,4 @@ igbinary version => %s
 igbinary AP%s serializer ABI => %s
 igbinary session support => %s
 igbinary.compact_strings => %s => %s
+igbinary.use_v3_serialize_format => %s => %s
