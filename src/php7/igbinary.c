@@ -132,9 +132,9 @@ static zend_always_inline void zval_ptr_dtor_str(zval *zval_ptr)
 #endif
 /* }}} */
 
-/* {{{ V3 Types */
+/* {{{ enum igbinary_v3_type (V3 Types) */
 enum igbinary_v3_type {
-	/* NOTE: The values 01-03 were chosen to match the current values for IS_UNDEF..IS_TRUE. */
+	/* NOTE: The values 00-03 were chosen to match the current values for IS_UNDEF..IS_TRUE. */
 
 	/* 00 */ igbinary_v3_type_undef,			/**< Undefined. TODO handle this for a declared instance property that was omitted from serialization */
 	/* 01 */ igbinary_v3_type_null,				/**< Null. */
@@ -143,40 +143,52 @@ enum igbinary_v3_type {
 
 	/* TODO reindex the other values */
 
-	/* 04 */ igbinary_v3_type_long8p,			/**< Long 8bit positive. */
-	/* 05 */ igbinary_v3_type_long8n,			/**< Long 8bit negative. */
-	/* 06 */ igbinary_v3_type_long16p,			/**< Long 16bit positive. */
-	/* 07 */ igbinary_v3_type_long16n,			/**< Long 16bit negative. */
-	/* 08 */ igbinary_v3_type_long32p,			/**< Long 32bit positive. */
-	/* 09 */ igbinary_v3_type_long32n,			/**< Long 32bit negative. */
-	/* 0a */ igbinary_v3_type_long64signed,		/**< Long signed 64bit (int64_t range). */
+	/* 04 */ igbinary_v3_type_long_literal0,	/**< 0 */
+	/* 05 */ igbinary_v3_type_long_literal1,	/**< 1 */
+	/* 06 */ igbinary_v3_type_long_literal2,	/**< 2 */
+	/* 07 */ igbinary_v3_type_long_literal3,	/**< 3 */
+	/* 08 */ igbinary_v3_type_long_literal4,	/**< 4 */
+	/* 09 */ igbinary_v3_type_long_literal5,	/**< 5 */
+	/* 0a */ igbinary_v3_type_long_literal6,	/**< 6 */
+	/* 0b */ igbinary_v3_type_long_literal7,	/**< 7 */
 
-	/* 0b */ igbinary_v3_type_double,			/**< C Double. */
+	/* 0c */ igbinary_v3_type_long8p,			/**< Long 8bit positive. */
+	/* 0d */ igbinary_v3_type_long8n,			/**< Long 8bit negative. */
+	/* 0e */ igbinary_v3_type_long16p,			/**< Long 16bit positive. */
+	/* 0f */ igbinary_v3_type_long16n,			/**< Long 16bit negative. */
+	/* 10 */ igbinary_v3_type_long32p,			/**< Long 32bit positive. */
+	/* 11 */ igbinary_v3_type_long32n,			/**< Long 32bit negative. */
+	/* 12 */ igbinary_v3_type_long64signed,		/**< Long signed 64bit (int64_t range). */
 
-	/* 0c */ igbinary_v3_type_string_empty,		/**< Empty string. */
-	/* 0d */ igbinary_v3_type_string_char,		/**< Single character string. These are still interned for use in class names for object_id8. */
+	/* 13 */ igbinary_v3_type_double,			/**< C Double. */
 
-	/* 0e */ igbinary_v3_type_string8,			/**< String. */
-	/* 0f */ igbinary_v3_type_string16,			/**< String. */
-	/* 10 */ igbinary_v3_type_string32,			/**< String. */
-	/* 11 */ igbinary_v3_type_string64,			/**< String larger than 4GB (originally, php strings had a limit of 32-bit lengths). */
+	/* 14 */ igbinary_v3_type_string_empty,		/**< Empty string. */
+	/* 15 */ igbinary_v3_type_string_char,		/**< Single character string. These are still interned for use in class names for object_id8. */
 
-	/* 12 */ igbinary_v3_type_string_id8,		/**< String id. */
-	/* 13 */ igbinary_v3_type_string_id16,		/**< String id. */
-	/* 14 */ igbinary_v3_type_string_id32,		/**< String id. */
+	/* 16 */ igbinary_v3_type_string8,			/**< String. */
+	/* 17 */ igbinary_v3_type_string16,			/**< String. */
+	/* 18 */ igbinary_v3_type_string32,			/**< String. */
+	/* 19 */ igbinary_v3_type_string64,			/**< String larger than 4GB (originally, php strings had a limit of 32-bit lengths). */
 
-	/* 15 */ igbinary_v3_type_object_id8,		/**< Object id. Indicates the start of an object being unserialized with a class name that has already been used as a string. */
-	/* 16 */ igbinary_v3_type_object_id16,		/**< Object id. */
-	/* 17 */ igbinary_v3_type_object_id32,		/**< Object id. */
+	/* 20 */ igbinary_v3_type_string_private8,		/**< Private property,   8bit, "\x00$className\x00$name" */
+	/* 20 */ igbinary_v3_type_string_protected8,	/**< Protected property, 8bit, "\x00*\x00$name" */
 
-	/* 18 */ igbinary_v3_type_array0,			/**< Empty array. */
-	/* 19 */ igbinary_v3_type_array8,			/**< Array. */
-	/* 1a */ igbinary_v3_type_array16,			/**< Array. */
-	/* 1b */ igbinary_v3_type_array32,			/**< Array. */
+	/* 1a */ igbinary_v3_type_string_id8,		/**< String id. (String that was already unserialized) */
+	/* 1b */ igbinary_v3_type_string_id16,		/**< String id. */
+	/* 1c */ igbinary_v3_type_string_id32,		/**< String id. */
 
-	/* 1c */ igbinary_v3_type_list8,			/**< Array with keys 0..count-1 in that order. */
-	/* 1d */ igbinary_v3_type_list16,			/**< Array. */
+	/* 1d */ igbinary_v3_type_array0,			/**< Empty array. */
+	/* 1e */ igbinary_v3_type_array8,			/**< Array. */
+	/* 1f */ igbinary_v3_type_array16,			/**< Array. */
+	/* 20 */ igbinary_v3_type_array32,			/**< Array. */
+
+	/* 21 */ igbinary_v3_type_list8,			/**< Array with keys 0..count-1 in that order. */
+	/* 22 */ igbinary_v3_type_list16,			/**< Array. */
 	/* 1e */ igbinary_v3_type_list32,			/**< Array. */
+
+	/* 1d */ igbinary_v3_type_object_id8,		/**< Object id. Indicates the start of an object being unserialized with a class name that has already been used as a string. */
+	/* 1e */ igbinary_v3_type_object_id16,		/**< Object id. */
+	/* 17 */ igbinary_v3_type_object_id32,		/**< Object id. */
 
 	/* 1f */ igbinary_v3_type_object8,			/**< Object. */
 	/* 20 */ igbinary_v3_type_object16,			/**< Object. */
@@ -2669,23 +2681,7 @@ cleanup:
 
 		switch (key_type) {
 			case igbinary_v3_type_long8p:
-				/* Manually inline igbinary_unserialize_v3_long() for array keys from 0 to 255, because they're the most common among integers. */
-				if (IGB_NEEDS_MORE_DATA(igsd, 1)) {
-					zend_error(E_WARNING, "igbinary_unserialize_v3_long: end-of-data");
-					goto cleanup;
-				}
-
-				key_index = igbinary_unserialize8(igsd);
-				break;
 			case igbinary_v3_type_long16p:
-				/* and for array keys from 0 to 65535. */
-				if (IGB_NEEDS_MORE_DATA(igsd, 2)) {
-					zend_error(E_WARNING, "igbinary_unserialize_v3_long: end-of-data");
-					goto cleanup;
-				}
-
-				key_index = igbinary_unserialize16(igsd);
-				break;
 			case igbinary_v3_type_long8n:
 			case igbinary_v3_type_long16n:
 			case igbinary_v3_type_long32p:
@@ -3586,23 +3582,7 @@ static int igbinary_unserialize_v3_zval(struct igbinary_unserialize_data *igsd, 
 			ZVAL_STR(z, tmp_str);
 			break;
 		case igbinary_v3_type_long8p:
-			/* Manually inline igbinary_unserialize_v3_long() for values from 0 to 255, because they're the most common among integers in many applications. */
-			if (IGB_NEEDS_MORE_DATA(igsd, 1)) {
-				zend_error(E_WARNING, "igbinary_unserialize_v3_long: end-of-data");
-				return 1;
-			}
-
-			ZVAL_LONG(z, igbinary_unserialize8(igsd));
-			break;
 		case igbinary_v3_type_long16p:
-			/* Manually inline igbinary_unserialize_v3_long() for values from 0 to 255, because they're the most common among integers in many applications. */
-			if (IGB_NEEDS_MORE_DATA(igsd, 2)) {
-				zend_error(E_WARNING, "igbinary_unserialize_v3_long: end-of-data");
-				return 1;
-			}
-
-			ZVAL_LONG(z, igbinary_unserialize16(igsd));
-			break;
 		case igbinary_v3_type_long8n:
 		case igbinary_v3_type_long16n:
 		case igbinary_v3_type_long32p:
@@ -3649,7 +3629,7 @@ static int igbinary_unserialize_v3_zval(struct igbinary_unserialize_data *igsd, 
 /************************************************************************
  * V2 serialization and unserialization code                            *
  ***********************************************************************/
-/* {{{ V2 Types */
+/* {{{ enum igbinary_v2_type (V2 Types)  */
 #define igbinary_v3_type IGBINARY_TYPE_NO_LONGER_USED
 enum igbinary_v2_type {
 	/* 00 */ igbinary_v2_type_null,				/**< Null. */
