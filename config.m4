@@ -22,7 +22,7 @@ if test "$PHP_IGBINARY" != "no"; then
 
   AC_MSG_CHECKING(PHP version)
 
-  PHP_IGBINARY_SRC_FILES="src/php7/igbinary.c src/php7/hash_si.c src/php7/hash_si_ptr.c"
+  PHP_IGBINARY_SRC_FILES="src/php7/igbinary.c src/php7/igbinary_v3_format.c src/php7/hash_si.c src/php7/hash_si_ptr.c"
   if test -n "$phpincludedir" -a -d "$phpincludedir"; then
     IGBINARY_PHPINCLUDEDIR=$phpincludedir
   else
@@ -71,6 +71,16 @@ if test "$PHP_IGBINARY" != "no"; then
   else
     AC_MSG_RESULT(other)
   fi
+  dnl vim has issues syntax highlighting this file without closing '
+
+  AC_MSG_CHECKING(additional compiler flags)
+  dnl Only export symbols marked as IGBINARY_API, reducing the binary size, and allowing for certain optimizations.
+  AC_CHECK_COMPILE_FLAG([-fvisibility=hidden],
+                        [PHP_IGBINARY_CFLAGS="$PHP_IGBINARY_CFLAGS -fvisibility=hidden"])
+  dnl Enable link-time optimizations
+  AC_CHECK_COMPILE_FLAG([-flto],
+                        [PHP_IGBINARY_CFLAGS="$PHP_IGBINARY_CFLAGS -flto"])
+
 
   PHP_ADD_MAKEFILE_FRAGMENT(Makefile.bench)
   PHP_INSTALL_HEADERS([ext/igbinary], [igbinary.h src/php7/igbinary.h php_igbinary.h src/php7/php_igbinary.h])

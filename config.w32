@@ -27,7 +27,7 @@ if (PHP_IGBINARY == "yes") {
     ERROR("PHP 5 is not supported by igbinary 3 - Use igbinary 2.x");
   } else if (is_php7_or_newer) {
     subdir = "src\\php7";
-    php_igbinary_src_files = "igbinary.c hash_si.c hash_si_ptr.c"
+    php_igbinary_src_files = "igbinary.c igbinary_v3_format.c hash_si.c hash_si_ptr.c"
   } else {
     ERROR("Cannot match any known PHP version with '" + dll + "'");
   }
